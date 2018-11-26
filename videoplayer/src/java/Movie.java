@@ -35,7 +35,7 @@ class Movie implements MediaPlayer.OnPreparedListener {
         Log.v("defold-videoplayer", message);
     }
 
-    private static final String LINK = "https://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_1mb.mp4";
+    private static final String LINK = "http://mirrors.standaloneinstaller.com/video-sample/Panasonic_HDC_TM_700_P_50i.mp4";
     private static final String FILE = "big_buck_bunny_720p_1mb.mp4";
 
     private int id;
