@@ -197,7 +197,7 @@ dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params)
 
     g_VideoContext.m_NumVideos   = 0;
 
-    return dmExtension::RESULT_OK;;
+    return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params)

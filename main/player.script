@@ -10,7 +10,7 @@ end
 
 function video_begin(self)
     if videoplayer then
-        self.video = videoplayer.create("big_buck_bunny_720p_1mb.mp4", video_callback)
+        self.video = videoplayer.create("big_buck_bunny_720p_1mb.mp4", {}, video_callback)
         log("Loading...")
     else
         log("Could not initialize fullscreen videoplayer (on this platform?)")

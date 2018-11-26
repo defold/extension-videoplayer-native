@@ -88,9 +88,9 @@ class Movie implements MediaPlayer.OnPreparedListener {
 
         LOG("MOVIE: new SurfaceView");
         instance.surfaceView = new SurfaceView(context);
-        ViewGroup viewGroup = (ViewGroup)activity.findViewById(android.R.id.content);
+        //ViewGroup viewGroup = (ViewGroup)activity.findViewById(android.R.id.content);
         //viewGroup.addView(instance.surfaceView, 400, 400);
-        viewGroup.addView(instance.surfaceView, new ViewGroup.LayoutParams(400, 400));
+    //viewGroup.addView(instance.surfaceView, new ViewGroup.LayoutParams(400, 400));
         //instance.surfaceView.setVisibility(View.GONE);
         //instance.surfaceView.setVisibility(View.INVISIBLE);
         // int index = viewGroup.indexOfChild(instance.surfaceView);

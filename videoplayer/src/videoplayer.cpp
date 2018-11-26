@@ -115,7 +115,7 @@ static dmExtension::Result AppInitializeVideoPlayer(dmExtension::AppParams* para
 
 static dmExtension::Result InitializeVideoPlayer(dmExtension::Params* params)
 {
-    if (dmVideoPlayer::Init(params)) {
+    if (dmVideoPlayer::Init(params) == dmExtension::RESULT_OK) {
         LuaInit(params->m_L);
         dmLogInfo("Registered %s extension", MODULE_NAME);
     } else {
