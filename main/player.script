@@ -5,8 +5,12 @@ local function log(msg)
 end
 
 local function video_callback(self, video, event, data)
-    log(string.format("VIDEO CALLBACK: %d evt: %d ",video, event))
+    log(string.format("VIDEO CALLBACK: video %d evt: %d ", video, event))
     pprint(data)
+
+    if event == videoplayer.VIDEO_EVENT_READY then
+        videoplayer.start(video)
+    end
 end
 
 
