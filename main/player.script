@@ -1,12 +1,14 @@
-local function video_callback(self, video, event, data)
-    log(string.format("VIDEO CALLBACK: %d evt: %d ",video, event))
-    pprint(data)
-end
 
 local function log(msg)
     print(msg)
     label.set_text("#label", msg)
 end
+
+local function video_callback(self, video, event, data)
+    log(string.format("VIDEO CALLBACK: %d evt: %d ",video, event))
+    pprint(data)
+end
+
 
 function video_begin(self)
     if videoplayer then
