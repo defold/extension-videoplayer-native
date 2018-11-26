@@ -106,14 +106,15 @@ static void LuaInit(lua_State* L)
     DM_LUA_STACK_CHECK(L, 0);
     luaL_register(L, MODULE_NAME, Module_methods);
 
+
 #define SETCONSTANT(name) \
         lua_pushnumber(L, (lua_Number)dmVideoPlayer:: name); \
         lua_setfield(L, -2, #name);\
 
-    SETCONSTANT(VIDEO_EVENT_READY)
-    SETCONSTANT(VIDEO_EVENT_FAILED)
+#include "videoplayer_constants.h"
 
 #undef SETCONSTANT
+
 
     lua_pop(L, 1);
 }

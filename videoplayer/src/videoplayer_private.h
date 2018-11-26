@@ -20,11 +20,12 @@ struct LuaCallback
     int         m_Callback;
 };
 
+#define SETCONSTANT(name) name,
 enum VideoEvent
 {
-    VIDEO_EVENT_READY,          // Called when the video is ready to start playing
-    VIDEO_EVENT_FAILED,         // The operation failed for some reason
+#include "videoplayer_constants.h"
 };
+#undef SETCONSTANT
 
 struct VideoEventInfo
 {
