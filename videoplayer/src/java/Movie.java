@@ -176,6 +176,12 @@ class Movie implements MediaPlayer.OnPreparedListener {
 
         instance.layout.setLayoutParams(instance.windowParams);
 
+        // from setVisibleInternal
+        WindowManager wm = instance.activity.getWindowManager();
+        wm.addView(instance.layout, instance.windowParams);
+        instance.firstShow = false;
+        //instance.surfaceView.setVisibility(View.GONE); // Hidden from start
+
         LOG("MOVIE: setup() end");
     }
 
