@@ -9,7 +9,6 @@ local function video_callback(self, video, event, data)
     pprint(data)
 
     if event == videoplayer.VIDEO_EVENT_READY then
-        videoplayer.set_visible(video, 1)
         videoplayer.start(video)
     end
 end
@@ -17,8 +16,8 @@ end
 
 function video_begin(self)
     if videoplayer then
-        self.video = videoplayer.create("big_buck_bunny_720p_1mb.mp4", {}, video_callback)
         log("Loading...")
+        self.video = videoplayer.create("cutscene_3.mp4", {}, video_callback)
     else
         log("Could not initialize fullscreen videoplayer (on this platform?)")
     end
@@ -31,18 +30,24 @@ function video_end(self)
     end
 end
 
+local function window_callback(self, event, data)
+	if self.video == nil then
+		return
+	end
+
+	if event == window.WINDOW_EVENT_FOCUS_LOST then
+		videoplayer.pause(self.video)
+	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
+		videoplayer.start(self.video)
+	end
+end
+
 function init(self)
     msg.post(".", "acquire_input_focus")
     self.video = nil
     self.tick = 1
-end
 
-function update(self, dt)
-    self.tick = self.tick - dt
-    if self.tick < 0 then
-        print("Tick")
-        self.tick = 1
-    end
+    window.set_listener(window_callback)
 end
 
 function on_input(self, action_id, action)
