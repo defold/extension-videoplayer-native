@@ -40,6 +40,8 @@ function video_end(self, video)
 	if video ~= nil then
 		videoplayer.destroy(video)
 	end
+
+	self.video = nil;
 end
 
 local function window_callback(self, event, data)
