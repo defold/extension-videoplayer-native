@@ -13,6 +13,7 @@ game_binding = /input/game.input_bindingc
 [display]
 width = 720
 height = 1280
+fullscreen = 0
 
 [physics]
 scale = 0.02
@@ -26,6 +27,7 @@ bundle_identifier = com.defoldexample.videoplayer
 [android]
 package = com.defoldexample.videoplayer
 debuggable = 1
+immersive_mode = 1
 
 [osx]
 bundle_identifier = com.defoldexample.videoplayer

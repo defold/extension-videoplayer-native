@@ -118,6 +118,14 @@ class Movie implements
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.setGravity(Gravity.CENTER);
 		layout.addView(videoView, params);
+		layout.setSystemUiVisibility(
+			View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+			| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+			| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+			| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+			| View.SYSTEM_UI_FLAG_FULLSCREEN
+			| View.SYSTEM_UI_FLAG_IMMERSIVE
+		);
 
 		WindowManager.LayoutParams windowParams = new WindowManager.LayoutParams();
 		windowParams.gravity = Gravity.CENTER;
@@ -175,14 +183,18 @@ class Movie implements
 		Logger.log("Movie: destroy()");
 
 		destroyed = true;
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mediaPlayer != null) {
+					mediaPlayer.release();
+					mediaPlayer = null;
+				}
 
-		if (mediaPlayer != null) {
-			mediaPlayer.release();
-			mediaPlayer = null;
-		}
-
-		WindowManager wm = activity.getWindowManager();
-		wm.removeView(layout);
+				WindowManager wm = activity.getWindowManager();
+				wm.removeView(layout);
+			}
+		});
 	}
 
 	private void setVisibleInternal(int visible)

@@ -3,8 +3,9 @@ package com.defold.android.videoplayer;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
+import android.view.View;
 
-public class VideoView extends SurfaceView {
+public class VideoView extends SurfaceView implements View.OnClickListener {
 
 	public enum ScaleMode{ Fit, Stretch, Zoom }
 
@@ -35,6 +36,8 @@ public class VideoView extends SurfaceView {
 		width = 0;
 		height = 0;
 		aspectRatio = 1.0f;
+
+		setOnClickListener(this);
 	}
 
 	public void setScaleMode(ScaleMode _scaleMode){
@@ -95,5 +98,11 @@ public class VideoView extends SurfaceView {
 			Logger.log("VideoView: " + e.toString());
 			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		}
+	}
+
+	@Override
+	public void onClick(View v){
+		Logger.log("VideoView: onClick");
+		return;
 	}
 }

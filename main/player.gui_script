@@ -10,14 +10,17 @@ local function video_callback(self, video, event, data)
 	if event == videoplayer.VIDEO_EVENT_READY then
 		videoplayer.start(video)
 	elseif event == videoplayer.VIDEO_EVENT_FINISHED then
-		video_end(self)
+		video_end(self, video)
 	end
 end
 
 function video_begin(self)
 	if videoplayer then
 		log("Loading...")
-		self.video = videoplayer.create("cutscene_2.mp4", {}, video_callback)
+
+		local videos = {"cutscene_2.mp4", "cutscene_3.mp4", "big_buck_bunny_720p_1mb.mp4"}
+
+		self.video = videoplayer.create(videos[math.random(#videos)], {}, video_callback)
 		log(self.video)
 	else
 		log("Could not initialize fullscreen videoplayer (on this platform?)")
@@ -28,15 +31,14 @@ function video_begin(self)
 	end
 end
 
-function video_end(self)
+function video_end(self, video)
 	log("Touch to start")
 	gui.animate(self.box_node, "color", self.color, gui.EASING_INOUTSINE, 0.5)
 	gui.set_enabled(self.label_node, true)
 	gui.set_enabled(self.logo_node, true)
 
-	if self.video ~= nil then
-		videoplayer.destroy(self.video)
-		self.video = nil;
+	if video ~= nil then
+		videoplayer.destroy(video)
 	end
 end
 
