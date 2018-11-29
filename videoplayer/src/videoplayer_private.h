@@ -40,6 +40,7 @@ struct VideoEventInfo
 enum CommandType
 {
     CMD_PREPARE_OK,
+    CMD_FINISHED,
     CMD_PREPARE_ERROR,
 };
 

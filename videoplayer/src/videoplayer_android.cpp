@@ -80,7 +80,6 @@ static void ClearCommandQueue()
 extern "C" {
 #endif
 
-
     JNIEXPORT void JNICALL Java_com_defold_android_videoplayer_Movie_videoIsReady(JNIEnv* env, jobject video, jint id, jint width, jint height)
     {
         dmLogWarning("%s:%d:", __FUNCTION__, __LINE__);
@@ -98,6 +97,21 @@ extern "C" {
         QueueCommand(&cmd);
     }
 
+    JNIEXPORT void JNICALL Java_com_defold_android_videoplayer_Movie_videoIsFinished(JNIEnv* env, jobject video, jint id)
+    {
+        dmLogWarning("%s:%d:", __FUNCTION__, __LINE__);
+        assert(id >= 0 && id < g_VideoContext.m_NumVideos);
+
+        SAndroidVideoInfo* info = &g_VideoContext.m_Videos[id];
+
+        dmVideoPlayer::Command cmd;
+        memset(&cmd, 0, sizeof(cmd));
+        cmd.m_Type = dmVideoPlayer::CMD_FINISHED;
+        cmd.m_ID = id;
+        cmd.m_Callback = info->m_Callback;
+        QueueCommand(&cmd);
+    }
+
 #ifdef __cplusplus
 }
 #endif
@@ -110,7 +124,7 @@ int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb
     if (g_VideoContext.m_NumVideos >= MAX_NUM_VIDEOS)
     {
         dmLogError("Max number of videos opened: %d", MAX_NUM_VIDEOS);
-        return 0;
+        return -1;
     }
 
     int id = g_VideoContext.m_NumVideos;
@@ -143,6 +157,7 @@ void dmVideoPlayer::Destroy(int video)
     scope.env->DeleteGlobalRef(info.m_Video);
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     info.m_Video = 0;
+	--g_VideoContext.m_NumVideos;
 }
 
 void dmVideoPlayer::SetVisible(int video, int visible)

@@ -39,14 +39,21 @@ class Movie implements
 	private VideoView videoView;
 	private int currentPosition;
 
+	private LinearLayout layout;
+
+	boolean destroyed;
+
 
 	// Add more functions callback to C to convey messages
 	private native void videoIsReady(int id, int width, int height);
+	private native void videoIsFinished(int id);
 
 	public Movie(final Context context, String _uri, int _id){
 		Logger.log("Movie: Movie()");
 		uri = _uri;
 		id = _id;
+
+		destroyed = false;
 
 		activity = (Activity)context;
 
@@ -82,6 +89,7 @@ class Movie implements
 			@Override
 			public void surfaceCreated(SurfaceHolder holder) {
 				Logger.log("Movie: surfaceCreated");
+				if(destroyed)return;
 
 				try{
 					instance.mediaPlayer.setDisplay(holder);
@@ -96,6 +104,7 @@ class Movie implements
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {
 				Logger.log("Movie: surfaceDestroyed");
+				if(destroyed)return;
 
 				instance.currentPosition = instance.mediaPlayer.getCurrentPosition();
 				instance.mediaPlayer.reset();
@@ -105,7 +114,7 @@ class Movie implements
 		MarginLayoutParams params = new MarginLayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
 		params.setMargins(0, 0, 0, 0);
 
-		LinearLayout layout = new LinearLayout(activity);
+		layout = new LinearLayout(activity);
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.setGravity(Gravity.CENTER);
 		layout.addView(videoView, params);
@@ -159,15 +168,21 @@ class Movie implements
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		Logger.log("Movie: onCompletion");
-		//sendPlayerStatus("completed");
+		videoIsFinished(id);
 	}
 
 	public void destroy(){
 		Logger.log("Movie: destroy()");
+
+		destroyed = true;
+
 		if (mediaPlayer != null) {
 			mediaPlayer.release();
 			mediaPlayer = null;
 		}
+
+		WindowManager wm = activity.getWindowManager();
+		wm.removeView(layout);
 	}
 
 	private void setVisibleInternal(int visible)
@@ -191,8 +206,6 @@ class Movie implements
 
 	public void start(){
 		Logger.log("Movie: Movie start()");
-
-		mediaPlayer.setLooping(true); // only for debugging purposes, should be a separate setting or function
 		mediaPlayer.start();
 	}
 
