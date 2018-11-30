@@ -19,7 +19,7 @@
 
 ## How do I use this extension?
 
-Add the package link (https://github.com/defold/extension-videoplayer/archive/master.zip)
+Add the package link (https://github.com/defold/extension-videoplayer-native/archive/master.zip)
 to the project setting `project.dependencies`, and you should be good to go.
 
 See the [manual](http://www.defold.com/manuals/libraries/) for further info.
