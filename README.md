@@ -57,33 +57,49 @@ Shows or hides the video player view
 
 # Example
 
-*[main.script](main/main.script):*
+*[player.gui_script](main/player.gui_script):*
+    
+```lua
+function video_callback(self, video, event, data)
+    if event == videoplayer.VIDEO_EVENT_READY then
+        videoplayer.start(video)
+    elseif event == videoplayer.VIDEO_EVENT_FINISHED then
+        video_end(self, video)
+    end
+end
 
-    function init(self)
-        local logosize = 128
-        local screen_width = sys.get_config("display.width", 600)
-        local screen_height = sys.get_config("display.height", 800)
-        local scale_width = screen_width / logosize
-        local scale_height = screen_height / logosize
+function video_begin(self)
+    if videoplayer then
+        self.video = videoplayer.create("video.mp4", {}, video_callback)
+    else
+        print("Could not initialize fullscreen videoplayer (on this platform?)")
+    end
+end
 
-        go.set("#sprite", "scale", vmath.vector3(scale_width, scale_height, 1) )
-
-        if videoplayer ~= nil then
-            local videoresource = resource.load("/videos/big_buck_bunny.webm")
-            self.video = videoplayer.open(videoresource)
-            self.videoinfo = videoplayer.get_info(self.video)
-            self.videoheader = { width=self.videoinfo.width, height=self.videoinfo.height, type=resource.TEXTURE_TYPE_2D, format=resource.TEXTURE_FORMAT_RGB, num_mip_maps=1 }
-            self.videoframe = videoplayer.get_frame(self.video)
-        else
-            print("Could not initialize videoplayer")
-        end
+function video_end(self, video)
+    if video ~= nil then
+        videoplayer.destroy(video)
     end
 
-    function update(self, dt)
-        if videoplayer ~= nil then
-            videoplayer.update(self.video, dt)
-            local path = go.get("#sprite", "texture0")
-            resource.set_texture(path, self.videoheader, self.videoframe)
-        end
+    self.video = nil;
+end
+
+function window_callback(self, event, data)
+    if self.video == nil then
+        return
     end
 
+    if event == window.WINDOW_EVENT_FOCUS_LOST then
+        videoplayer.pause(self.video)
+    elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
+        videoplayer.start(self.video)
+    end
+end
+
+function init(self)
+    self.video = nil
+
+    window.set_listener(window_callback)
+    video_begin(self)
+end
+```
