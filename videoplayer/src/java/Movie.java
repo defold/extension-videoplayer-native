@@ -26,10 +26,6 @@ class Movie implements
 	MediaPlayer.OnPreparedListener,
 	MediaPlayer.OnCompletionListener {
 
-	private static final String LINK = "http://mirrors.standaloneinstaller.com/video-sample/Panasonic_HDC_TM_700_P_50i.mp4";
-	//private static final String FILE = "big_buck_bunny_720p_1mb.mp4";
-	private static final String FILE = "cutscene_3.mp4";
-
 	private int id;
 	private String uri;
 
@@ -140,7 +136,6 @@ class Movie implements
 			AssetFileDescriptor afd = activity.getAssets().openFd(path);
 			mediaPlayer.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
 			afd.close();
-			//mediaPlayer.setDataSource(LINK);
 		} catch (IllegalStateException e) {
 			Logger.log(e.toString());
 		} catch (IllegalArgumentException e) {
