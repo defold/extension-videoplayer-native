@@ -1,1 +1,18 @@
 name: "VideoPlayer"
+
+platforms:
+  x86_64-osx:
+    context:
+        frameworks: ["AVFoundation", "AVKit", "CoreMedia"]
+        
+  x86-osx:
+    context:
+        frameworks: ["AVFoundation", "AVKit", "CoreMedia"]
+
+  arm64-ios:
+    context:
+        frameworks: ["AVFoundation", "AVKit", "CoreMedia", "UIKit"]
+
+  armv7-ios:
+    context:
+        frameworks: ["AVFoundation", "AVKit", "CoreMedia", "UIKit"]
