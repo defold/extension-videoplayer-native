@@ -9,19 +9,20 @@
 // ----------------------------------------------------------------------------
 
 @interface VideoPlayerViewController : UIViewController {
-    AVAsset *asset;
-    AVPlayer *player;
-    AVPlayerItem *playerItem;
-    AVPlayerViewController *playerViewController;
+    AVAsset* asset;
+    AVPlayer* player;
+    AVPlayerItem* playerItem;
+    AVPlayerViewController* playerViewController;
 }
--(void) prepareVideoPlayer: (NSURL*) url;
+    -(void) prepareVideoPlayer: (NSURL*) url;
+    -(void) play;
 @end
 
 // ----------------------------------------------------------------------------
 
 @interface VideoPlayerAppDelegate : UIResponder <UIApplicationDelegate>
-@property (strong, nonatomic) UIWindow *window;
-@property (strong, nonatomic) VideoPlayerViewController *viewController;
+    @property (strong, nonatomic) UIWindow* window;
+    @property (strong, nonatomic) VideoPlayerViewController* viewController;
 @end
 
 // ----------------------------------------------------------------------------
@@ -31,36 +32,39 @@
 @synthesize window = _window;
 @synthesize viewController = _viewController;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+-(BOOL) application:(UIApplication*) application didFinishLaunchingWithOptions:(NSDictionary*) launchOptions {
+    dmLogInfo("VideoPlayerAppDelegate::didFinishLaunchingWithOptions()");
+   
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    self.viewController = [[VideoPlayerViewController alloc] initWithNibName:@"VideoPlayerViewController" bundle:nil];
+    self.viewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
     self.window.rootViewController = self.viewController;
-    [self.window makeKeyAndVisible];
-    
-    /*
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"big_buck_bunny_720p_1mb" ofType:@"mp4"];
-    NSURL *url = [[NSURL alloc] initFileURLWithPath: path];
-    [self.viewController prepareVideoPlayer:url];
-     */
+    self.window.hidden = true;
+    //[self.window makeKeyAndVisible];
+
     return YES;
 }
 
 // Maintenance methods
 
-- (void)applicationWillResignActive:(UIApplication *)application {
+-(void) applicationWillResignActive:(UIApplication *)application {
+    dmLogInfo("VideoPlayerViewController::applicationWillResignActive()");
 }
 
-- (void)applicationDidEnterBackground:(UIApplication *)application {
+-(void) applicationDidEnterBackground:(UIApplication *)application {
+    dmLogInfo("VideoPlayerViewController::applicationDidEnterBackground()");
 }
 
-- (void)applicationWillEnterForeground:(UIApplication *)application {
+-(void) applicationWillEnterForeground:(UIApplication *)application {
+    dmLogInfo("VideoPlayerViewController::applicationWillEnterForeground()");
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
+-(void) applicationDidBecomeActive:(UIApplication *)application {
+    dmLogInfo("VideoPlayerViewController::applicationDidBecomeActive()");
 }
 
-- (void)applicationWillTerminate:(UIApplication *)application {
+-(void) applicationWillTerminate:(UIApplication *)application {
+    dmLogInfo("VideoPlayerViewController::applicationWillTerminate()");
 }
 
 @end
@@ -70,6 +74,8 @@
 @implementation VideoPlayerViewController
 
 -(void) prepareVideoPlayer: (NSURL*) url {
+    dmLogInfo("VideoPlayerViewController::prepareVideoPlayer()");
+    
     asset = [AVURLAsset URLAssetWithURL:url options:nil];
     playerItem = [AVPlayerItem playerItemWithAsset:asset];
     
@@ -79,67 +85,74 @@
     playerViewController = [AVPlayerViewController new];
     playerViewController.player = player;
     playerViewController.showsPlaybackControls = false;
-    playerViewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    playerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
     
     [self presentViewController:playerViewController animated:NO completion:nil];
 }
 
-- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
+-(void) play {
+    [player play];
+}
+
+-(void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
+    dmLogInfo("VideoPlayerViewController::observeValueForKeyPath()");
     
     if (object == player && [keyPath isEqualToString:@"status"]) {
         if (player.status == AVPlayerStatusFailed) {
-            NSLog(@"AVPlayer Failed");
+            dmLogInfo("AVPlayer Failed");
         } else if (player.status == AVPlayerStatusReadyToPlay) {
-            NSLog(@"AVPlayer Ready to Play");
-            [player play];
-        } else if (player.status == AVPlayerItemStatusUnknown) {
-            NSLog(@"AVPlayer Unknown");
-        }
+            dmLogInfo("AVPlayer Ready to Play");
+            [self play];
+        } /*else if (player.status == AVPlayerItemStatusUnknown) {
+            dmLogInfo("AVPlayer Unknown");
+        }*/
     }
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    dmLogInfo("VideoPlayerViewController::supportedInterfaceOrientations()");
     return UIInterfaceOrientationMaskPortrait;
-    //return UIInterfaceOrientationMaskLandscapeRight;
 }
 
 // View maintenance methods
 
-- (void)didReceiveMemoryWarning {
+-(void) didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
+    dmLogInfo("VideoPlayerViewController::didReceiveMemoryWarning()");
 }
 
-- (void)viewDidLoad {
+-(void) viewDidLoad {
     [super viewDidLoad];
+    dmLogInfo("VideoPlayerViewController::viewDidLoad()");
 }
 
-- (void)viewDidUnload {
+-(void) viewDidUnload {
     [super viewDidUnload];
+    dmLogInfo("VideoPlayerViewController::viewDidUnload()");
 }
 
-- (void)viewWillAppear:(BOOL)animated {
+-(void) viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    dmLogInfo("VideoPlayerViewController::viewWillAppear()");
 }
 
-- (void)viewDidAppear:(BOOL)animated {
+-(void) viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
-    //NSString *path = [[NSBundle mainBundle] pathForResource:@"big_buck_bunny_720p_1mb" ofType:@"mp4"];
-    //NSString *path = [[NSBundle mainBundle] pathForResource:@"cutscene_2" ofType:@"mp4"];
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"cutscene_3" ofType:@"mp4"];
-    NSURL *url = [[NSURL alloc] initFileURLWithPath: path];
-    [self prepareVideoPlayer:url];
+    dmLogInfo("VideoPlayerViewController::viewDidAppear()");
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
-	[super viewWillDisappear:animated];
+-(void) viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    dmLogInfo("VideoPlayerViewController::viewWillDisappear()");
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-	[super viewDidDisappear:animated];
+-(void) viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    dmLogInfo("VideoPlayerViewController::viewDidDisappear()");
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+-(BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    dmLogInfo("VideoPlayerViewController::shouldAutorotateToInterfaceOrientation()");
     return interfaceOrientation == UIInterfaceOrientationPortrait;
 }
 
@@ -147,52 +160,78 @@
 
 // ----------------------------------------------------------------------------
 
-dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params)
-{
+VideoPlayerAppDelegate* g_VideoPlayerDelegate;
+
+dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params) {
+    dmLogInfo("dmVideoPlayer::Init()");    
+    g_VideoPlayerDelegate = [[VideoPlayerAppDelegate alloc] init];
+    dmExtension::RegisteriOSUIApplicationDelegate(g_VideoPlayerDelegate);
     return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params)
-{
+dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
+    dmLogInfo("dmVideoPlayer::Exit()");
     return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params)
-{
+dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
+    //dmLogInfo("dmVideoPlayer::Update()");
     return dmExtension::RESULT_OK;
 }
 
-int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb)
-{
+int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb) {
+    dmLogInfo("dmVideoPlayer::CreateWithUri() '%s'", uri);
+    [g_VideoPlayerDelegate.window makeKeyAndVisible];
+    
+    NSBundle* mainBundle = [NSBundle mainBundle];
+    if(mainBundle == NULL) {
+        dmLogInfo("mainBundle is null!");
+        return dmExtension::RESULT_OK;
+    } 
+    
+    NSString* path = [mainBundle pathForResource:@"assets/cutscene_2" ofType:@"mp4"];
+    if(path == NULL) {
+        dmLogInfo("path is null!");
+        return dmExtension::RESULT_OK;
+    }
+    
+    NSURL* url = [[NSURL alloc] initFileURLWithPath: path];
+    if(url == NULL) {
+        dmLogInfo("url is null!");
+        return dmExtension::RESULT_OK;
+    }
+    
+    [g_VideoPlayerDelegate.viewController prepareVideoPlayer:url];    
     return dmExtension::RESULT_OK;
 }
 
-void dmVideoPlayer::Destroy(int video)
-{
+void dmVideoPlayer::Destroy(int video) {
+    dmLogInfo("dmVideoPlayer::Destroy()");
 }
 
-void dmVideoPlayer::Show(int video)
-{
+void dmVideoPlayer::Show(int video) {
+    dmLogInfo("dmVideoPlayer::Show()");
 }
 
-void dmVideoPlayer::Hide(int video)
-{
+void dmVideoPlayer::Hide(int video) {
+    dmLogInfo("dmVideoPlayer::Hide()");
 }
 
-void dmVideoPlayer::Start(int video)
-{
+void dmVideoPlayer::Start(int video) {
+    dmLogInfo("dmVideoPlayer::Start()");
+    //[g_VideoPlayerDelegate.viewController play];
 }
 
-void dmVideoPlayer::Stop(int video)
-{
+void dmVideoPlayer::Stop(int video) {
+    dmLogInfo("dmVideoPlayer::Stop()");
 }
 
-void dmVideoPlayer::Pause(int video)
-{
+void dmVideoPlayer::Pause(int video) {
+    dmLogInfo("dmVideoPlayer::Pause()");
 }
 
-void dmVideoPlayer::SetVisible(int video, int visible)
-{
+void dmVideoPlayer::SetVisible(int video, int visible) {
+    dmLogInfo("dmVideoPlayer::SetVisible()");
 }
 
 #endif
