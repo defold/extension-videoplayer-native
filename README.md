@@ -31,12 +31,14 @@ See the [manual](http://www.defold.com/manuals/libraries/) for further info.
 
 Opens a video from either a buffer or a link, and returns a handle to the videoplayer.
     
-    function videoplayer_callback(self, video, event, data={})
-        ...
-    end
+```lua
+function videoplayer_callback(self, video, event, data={})
+    ...
+end
 
-    local videoresource = resource.load("/assets/big_buck_bunny_720p_1mb.mp4")
-    self.video = videoplayer.create(uri, settings={}, videoplayer_callback)
+local videoresource = resource.load("/assets/big_buck_bunny_720p_1mb.mp4")
+self.video = videoplayer.create(uri, settings={}, videoplayer_callback)
+```
 
 Where the `callback_fn` has the format:
 
