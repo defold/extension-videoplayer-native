@@ -10,8 +10,10 @@
     AVPlayerItem* playerItem;
     AVPlayerViewController* playerViewController;
 }
--(void) prepareVideoPlayer: (NSURL*) url;
--(void) play;
+-(void) PrepareVideoPlayer: (NSURL*) url;
+-(void) Play;
+-(void) Show;
+-(void) Hide;
 @end
 
 #endif
