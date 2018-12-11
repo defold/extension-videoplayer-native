@@ -12,8 +12,7 @@
 @synthesize viewController = _viewController;
 
 -(BOOL) application:(UIApplication*) application didFinishLaunchingWithOptions:(NSDictionary*) launchOptions {
-    dmLogInfo("VideoPlayerAppDelegate::didFinishLaunchingWithOptions()");
-
+    DBGFNLOG;
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.viewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
     self.window.rootViewController = self.viewController;

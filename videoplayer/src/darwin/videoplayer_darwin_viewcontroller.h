@@ -5,9 +5,10 @@
 #import <AVFoundation/AVFoundation.h>
 
 @interface VideoPlayerViewController : UIViewController {
-    AVAsset* asset;
-    AVPlayer* player;
-    AVPlayerItem* playerItem;
+    AVAsset* asset;				// Move to types.h?
+    AVPlayerItem* playerItem;	// Move to types.h?
+
+    AVPlayer* player;			
     AVPlayerViewController* playerViewController;
 }
 -(void) PrepareVideoPlayer: (NSURL*) url;
