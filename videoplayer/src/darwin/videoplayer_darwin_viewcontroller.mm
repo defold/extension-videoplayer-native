@@ -1,13 +1,12 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include "videoplayer_darwin_viewcontroller.h"
-#include <dmsdk/sdk.h>
-#define DBGFNLOG dmLogWarning("%s: %s:%d:", __FILE__, __FUNCTION__, __LINE__); // debugging while developing only
+#include <dmsdk/sdk.h>    // Logging
 
 @implementation VideoPlayerViewController
 
 -(void) PrepareVideoPlayer: (NSURL*) url {
-    DBGFNLOG;
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::PrepareVideoPlayer");
     
     m_Asset = [AVURLAsset URLAssetWithURL:url options:nil];
     m_PlayerItem = [AVPlayerItem playerItemWithAsset:m_Asset];
@@ -30,39 +29,41 @@
 }
 
 -(void) Start {
-    DBGFNLOG;
-    if(m_IsPaused == YES) {
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::Start");
+    /*if(m_IsPaused == YES) {
         //[m_Player resume];
     } else {
         [m_Player play];
-    }
+    }*/
+    //[self presentViewController:self.m_PlayerViewController animated:NO completion:nil];
+    //[m_Player play];
 }
 
 -(void) Stop {
-    DBGFNLOG;
-    [m_Player play];
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::Stop");
+    //[m_Player play];
 }
 
 
 -(void) Pause {
-    DBGFNLOG;
-    [m_Player pause];
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::Pause");
+    //[m_Player pause];
 }
 
 /*
 -(void) Show {
-    DBGFNLOG;
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::Show");
     //[self presentViewController:playerViewController animated:NO completion:nil];
 }
 
 -(void) Hide {
-    DBGFNLOG;
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::Hide");
     //[self dismissViewControllerAnimated:NO completion:nil];
 }
 */
 
 - (void)PlayerItemDidReachEnd:(NSNotification *)notification {
-    DBGFNLOG;
+    dmLogInfo("SIMON DEBUG: VideoPlayerViewController::PlayerItemDidReachEnd");
 }
 
 // ----------------------------------------------------------------------------
@@ -70,14 +71,12 @@
 // ----------------------------------------------------------------------------
 
 -(void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
-    DBGFNLOG;
-    
     if (object == m_Player && [keyPath isEqualToString:@"status"]) {
         if (m_Player.status == AVPlayerStatusFailed) {
             dmLogInfo("AVPlayer Failed");
         } else if (m_Player.status == AVPlayerStatusReadyToPlay) {
             dmLogInfo("AVPlayer Ready to Play");
-            [self Start];
+            [m_Player play];
         } 
     }
 }

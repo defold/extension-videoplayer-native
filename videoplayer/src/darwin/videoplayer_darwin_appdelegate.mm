@@ -1,35 +1,50 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #include "videoplayer_darwin_appdelegate.h"
 #include "videoplayer_darwin_viewcontroller.h"
-#include <dmsdk/sdk.h>
-#define DBGFNLOG dmLogWarning("%s: %s:%d:", __FILE__, __FUNCTION__, __LINE__); // debugging while developing only
+#include <dmsdk/sdk.h> // logging
 
 @implementation VideoPlayerAppDelegate
 
-@synthesize window = _window;
-@synthesize viewController = _viewController;
+@synthesize m_Window;
+@synthesize m_ViewController;
 
 
 // save old view controller!
 -(BOOL) application:(UIApplication*) application didFinishLaunchingWithOptions:(NSDictionary*) launchOptions {
-    DBGFNLOG;
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    self.viewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
-    self.window.rootViewController = self.viewController;
-    self.window.hidden = YES;
+    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::didFinishLaunchingWithOptions");
+    /*m_Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    m_ViewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
+    m_Window.rootViewController = m_ViewController;
+    m_Window.hidden = NO;*/
     return YES;
 }
 
+-(void) Create {
+    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Create");
+    m_Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    m_ViewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
+    m_Window.rootViewController = m_ViewController;
+    m_Window.hidden = NO;
+    [m_Window makeKeyAndVisible];
+}
+
+-(void) Destroy {
+    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Destroy");
+}
+
 -(void) Show {
-    self.window.hidden = NO;
+    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Show");
+    m_Window.hidden = NO;
 }
 
 -(void) Hide {
-    self.window.hidden = YES;
+    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Hide");
+    m_Window.hidden = YES;
 }
 
 -(BOOL) IsHidden {
-	return self.window.hidden;
+    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::IsHidden: %d", m_Window.hidden);
+    return m_Window.hidden;
 }
 
 @end

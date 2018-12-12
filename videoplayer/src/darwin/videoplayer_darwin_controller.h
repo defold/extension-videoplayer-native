@@ -17,7 +17,6 @@ struct SDarwinVideoInfo {
 		int 						m_NumVideos;
     	SDarwinVideoInfo 			m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
 		VideoPlayerAppDelegate* 	m_AppDelegate;
-		VideoPlayerViewController* 	m_ViewController;		
 	}
 	-(id) init;
 	-(void) Exit;

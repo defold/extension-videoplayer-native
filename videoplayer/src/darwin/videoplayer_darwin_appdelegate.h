@@ -6,13 +6,16 @@
 @class VideoPlayerViewController;
 
 @interface VideoPlayerAppDelegate : UIResponder <UIApplicationDelegate>
-	
-	-(void) Show;
-	-(void) Hide;
-	-(BOOL) IsHidden;
 
-    @property (strong, nonatomic) UIWindow* window;
-    @property (strong, nonatomic) VideoPlayerViewController* viewController;
+-(void) Create;
+-(void) Destroy;
+
+-(void) Show;
+-(void) Hide;
+-(BOOL) IsHidden;
+
+@property (strong, nonatomic) UIWindow* m_Window;
+@property (strong, nonatomic) VideoPlayerViewController* m_ViewController;
 @end
 
 #endif
