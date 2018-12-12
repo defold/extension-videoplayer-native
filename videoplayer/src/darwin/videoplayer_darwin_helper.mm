@@ -2,7 +2,7 @@
 
 #include "videoplayer_darwin_helper.h"
 
--(NSURL*) GetUrlFromURI: (const char*)uri {
+NSURL* GetUrlFromURI(const char* uri) {
     NSBundle* mainBundle = [NSBundle mainBundle];
     ReturnIfNull(mainBundle, NULL)
     

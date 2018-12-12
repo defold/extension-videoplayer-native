@@ -9,7 +9,7 @@
 	
 	-(void) Show;
 	-(void) Hide;
-	-(BOOL) IsVisible;
+	-(BOOL) IsHidden;
 
     @property (strong, nonatomic) UIWindow* window;
     @property (strong, nonatomic) VideoPlayerViewController* viewController;

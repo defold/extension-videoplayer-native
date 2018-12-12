@@ -25,31 +25,31 @@ int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb
 
 void dmVideoPlayer::Destroy(int video) {
     dmVideoPlayer::ClearCommandQueueFromID(video, g_CmdQueue.Size(), &g_CmdQueue[0]);
-    [g_VideoPlayerController Destroy:video]
+    [g_VideoPlayerController Destroy:video];
 }
 
 void dmVideoPlayer::Show(int video) {
-    [g_VideoPlayerController Show:video]
+    [g_VideoPlayerController Show:video];
 }
 
 void dmVideoPlayer::Hide(int video) {
-    [g_VideoPlayerController Hide:video]
+    [g_VideoPlayerController Hide:video];
 }
 
 void dmVideoPlayer::Start(int video) {
-    [g_VideoPlayerController Start:video]
+    [g_VideoPlayerController Start:video];
 }
 
 void dmVideoPlayer::Stop(int video) {
-    [g_VideoPlayerController Stop:video]
+    [g_VideoPlayerController Stop:video];
 }
 
 void dmVideoPlayer::Pause(int video) {
-    [g_VideoPlayerController Pause:video]
+    [g_VideoPlayerController Pause:video];
 }
 
 void dmVideoPlayer::SetVisible(int video, int visible) {
-    [g_VideoPlayerController SetVisible:video isVisible:visible]
+    [g_VideoPlayerController SetVisible:video isVisible:visible];
 }
 
 // ----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
     if (g_CmdQueue.Empty()) {
         return dmExtension::RESULT_OK; 
     }
-    dmVideoPlayer::ProcessCommandQueue(g_cmdQueue.Size(), &g_CmdQueue[0]);
+    dmVideoPlayer::ProcessCommandQueue(g_CmdQueue.Size(), &g_CmdQueue[0]);
     g_CmdQueue.SetSize(0);
     return dmExtension::RESULT_OK;
 }

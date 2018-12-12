@@ -1,26 +1,25 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #pragma once
+#include "../videoplayer_private.h"
+#import <Foundation/Foundation.h>
 
 @class VideoPlayerAppDelegate;
 @class VideoPlayerViewController;
 
-namespace dmVideoPlayer {
-	struct LuaCallback;
-}
-
 struct SDarwinVideoInfo {   
-    // AVAsset* m_Asset;
-    // AVPlayerItem* m_PlayerItem;
-    dmVideoPlayer::LuaCallback m_Callback;
+//	AVAsset* m_Asset;
+//	AVPlayerItem* m_PlayerItem;
+	dmVideoPlayer::LuaCallback m_Callback;
+	//jobject m_Video;
 };
 
-@interface VideoPlayerController {
+@interface VideoPlayerController : NSObject {
 		int 						m_NumVideos;
     	SDarwinVideoInfo 			m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
 		VideoPlayerAppDelegate* 	m_AppDelegate;
 		VideoPlayerViewController* 	m_ViewController;		
 	}
-	-(VideoPlayerController) init;
+	-(id) init;
 	-(void) Exit;
 
 	-(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*) cb;

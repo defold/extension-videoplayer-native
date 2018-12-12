@@ -32,7 +32,7 @@
 -(void) Start {
     DBGFNLOG;
     if(m_IsPaused == YES) {
-        [m_Player resume];
+        //[m_Player resume];
     } else {
         [m_Player play];
     }

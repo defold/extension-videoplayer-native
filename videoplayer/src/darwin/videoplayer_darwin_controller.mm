@@ -8,7 +8,7 @@
 
 @implementation VideoPlayerController
 
--(VideoPlayerController) init {
+-(id) init {
     if (self = [super init]) {
         m_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
         m_ViewController = m_AppDelegate.viewController;
@@ -27,8 +27,8 @@
 -(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*) cb {
     DBGFNLOG;
 
-    if (m_NumVideos >= MAX_NUM_VIDEOS) {
-        dmLogError("Max number of videos opened: %d", MAX_NUM_VIDEOS);
+    if (m_NumVideos >= dmVideoPlayer::MAX_NUM_VIDEOS) {
+        dmLogError("Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
         return -1;
     }
     int id = m_NumVideos;
@@ -42,7 +42,7 @@
     //if (jvideo) {
         ++m_NumVideos;
         SDarwinVideoInfo& info = m_Videos[id];
-        info.m_Video = jvideo;
+        //info.m_Video = jvideo;
         info.m_Callback = *cb;
         return id;
     //}
@@ -53,7 +53,7 @@
     DBGFNLOG;
     SDarwinVideoInfo& info = m_Videos[video];
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    info.m_Video = 0;
+    //info.m_Video = 0;
     --m_NumVideos;
 }
 
@@ -69,7 +69,7 @@
 
 -(void) Start: (int)video {
     DBGFNLOG;
-    [m_ViewController Play];
+    [m_ViewController Start];
 }
 
 -(void) Stop: (int)video {
@@ -85,9 +85,9 @@
 -(void) SetVisible: (int)video isVisible:(int)visible {
     DBGFNLOG;
     if(visible == 0) {
-        Hide(video);
+        [self Hide:video];
     } else {
-        Show(video);
+        [self Show:video];
     }
 }
 
