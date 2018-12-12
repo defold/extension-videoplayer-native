@@ -5,16 +5,19 @@
 #import <AVFoundation/AVFoundation.h>
 
 @interface VideoPlayerViewController : UIViewController {
-    AVAsset* asset;				// Move to types.h?
-    AVPlayerItem* playerItem;	// Move to types.h?
+	    AVAsset* m_Asset;				// Move to types.h?
+	    AVPlayerItem* m_PlayerItem;	// Move to types.h?
 
-    AVPlayer* player;			
-    AVPlayerViewController* playerViewController;
-}
--(void) PrepareVideoPlayer: (NSURL*) url;
--(void) Play;
--(void) Show;
--(void) Hide;
+	    AVPlayer* m_Player;			
+	    AVPlayerViewController* m_PlayerViewController;
+	    BOOL m_IsPaused;
+	}
+	-(void) PrepareVideoPlayer: (NSURL*) url;
+	-(void) Start;
+	-(void) Stop;
+	-(void) Pause;
+//	-(void) Show;
+//	-(void) Hide;
 @end
 
 #endif

@@ -20,89 +20,62 @@ static void ClearCommandQueue() {
 // ----------------------------------------------------------------------------
 
 int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb) {
-    return g_VideoPlayerController->Create(uri, cb);
+    return [g_VideoPlayerController Create:uri callback:cb];
 }
 
 void dmVideoPlayer::Destroy(int video) {
-    DBGFNLOG;
-    dmVideoPlayer::ClearCommandQueueFromID(video, g_VideoContext.m_CmdQueue.Size(), &g_VideoContext.m_CmdQueue[0]);
-    SDarwinVideoInfo& info = g_VideoContext.m_Videos[video];
-    dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    //info.m_Video = 0;
-    --g_VideoContext.m_NumVideos;
+    dmVideoPlayer::ClearCommandQueueFromID(video, g_CmdQueue.Size(), &g_CmdQueue[0]);
+    [g_VideoPlayerController Destroy:video]
 }
 
 void dmVideoPlayer::Show(int video) {
-    DBGFNLOG;
-    //g_VideoContext.m_VideoPlayerDelegate.window.hidden = false;
-    [g_VideoContext.m_VideoPlayerDelegate.viewController Show];
+    [g_VideoPlayerController Show:video]
 }
 
 void dmVideoPlayer::Hide(int video) {
-    DBGFNLOG;
-    //g_VideoContext.m_VideoPlayerDelegate.window.hidden = true;
-    [g_VideoContext.m_VideoPlayerDelegate.viewController Hide];
+    [g_VideoPlayerController Hide:video]
 }
 
 void dmVideoPlayer::Start(int video) {
-    DBGFNLOG;
-    Show(0);
-    [g_VideoContext.m_VideoPlayerDelegate.viewController Play];
+    [g_VideoPlayerController Start:video]
 }
 
 void dmVideoPlayer::Stop(int video) {
-    DBGFNLOG;
+    [g_VideoPlayerController Stop:video]
 }
 
 void dmVideoPlayer::Pause(int video) {
-    DBGFNLOG;
+    [g_VideoPlayerController Pause:video]
 }
 
 void dmVideoPlayer::SetVisible(int video, int visible) {
-    DBGFNLOG;
-    if(visible == 0) {
-        Hide(video);
-    } else {
-        Show(video);
-    }
+    [g_VideoPlayerController SetVisible:video isVisible:visible]
 }
 
-
-
 // ----------------------------------------------------------------------------
-// 
-// ----------------------------------------------------------------------------
-
-
 
 dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params) {
     DBGFNLOG;
-    g_VideoPlayerController = new VideoPlayerController();
-    dmExtension::RegisteriOSUIApplicationDelegate(videoPlayerDelegate);
-    g_VideoContext.m_VideoPlayerDelegate = videoPlayerDelegate;
-    g_VideoContext.m_NumVideos = 0;
+    g_VideoPlayerController = [[VideoPlayerController alloc] init];
     return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
     DBGFNLOG;
-    for( int i = 0; i < dmVideoPlayer::MAX_NUM_VIDEOS; ++i) {
+    for(int i = 0; i < dmVideoPlayer::MAX_NUM_VIDEOS; ++i) {
         dmVideoPlayer::Destroy(i);
     }
     ClearCommandQueue();
-
-    dmExtension::UnregisteriOSUIApplicationDelegate(g_VideoContext.m_VideoPlayerDelegate);
-    [g_VideoContext.m_VideoPlayerDelegate release];
-    g_VideoContext.m_VideoPlayerDelegate = 0;
+    [g_VideoPlayerController Exit];
     return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
-    if (g_VideoContext.m_CmdQueue.Empty()) {
+    if (g_CmdQueue.Empty()) {
         return dmExtension::RESULT_OK; 
     }
-    dmVideoPlayer::ProcessCommandQueue(g_VideoContext.m_CmdQueue.Size(), &g_VideoContext.m_CmdQueue[0]);
-    g_VideoContext.m_CmdQueue.SetSize(0);
+    dmVideoPlayer::ProcessCommandQueue(g_cmdQueue.Size(), &g_CmdQueue[0]);
+    g_CmdQueue.SetSize(0);
     return dmExtension::RESULT_OK;
 }
 

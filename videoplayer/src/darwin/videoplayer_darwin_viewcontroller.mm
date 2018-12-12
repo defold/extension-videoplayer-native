@@ -1,53 +1,68 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include "videoplayer_darwin_viewcontroller.h"
-
-// TODO: This is debug logging - remove when implementation finished
 #include <dmsdk/sdk.h>
 #define DBGFNLOG dmLogWarning("%s: %s:%d:", __FILE__, __FUNCTION__, __LINE__); // debugging while developing only
 
 @implementation VideoPlayerViewController
 
 -(void) PrepareVideoPlayer: (NSURL*) url {
-    dmLogInfo("VideoPlayerViewController::PrepareVideoPlayer()");
+    DBGFNLOG;
     
-    asset = [AVURLAsset URLAssetWithURL:url options:nil];
-    playerItem = [AVPlayerItem playerItemWithAsset:asset];
+    m_Asset = [AVURLAsset URLAssetWithURL:url options:nil];
+    m_PlayerItem = [AVPlayerItem playerItemWithAsset:m_Asset];
     
-    player = [AVPlayer playerWithPlayerItem:playerItem];
-    [player addObserver:self forKeyPath:@"status" options:0 context:nil];
+    m_Player = [AVPlayer playerWithPlayerItem:m_PlayerItem];
+    [m_Player addObserver:self forKeyPath:@"status" options:0 context:nil];
 
     [[NSNotificationCenter defaultCenter] addObserver: self
                                           selector: @selector(PlayerItemDidReachEnd:)
                                           name: AVPlayerItemDidPlayToEndTimeNotification
-                                          object: [player currentItem]];
+                                          object: [m_Player currentItem]];
     
-    playerViewController = [AVPlayerViewController new];
-    playerViewController.player = player;
-    playerViewController.showsPlaybackControls = false;
-    playerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
-    [self presentViewController:playerViewController animated:NO completion:nil];
+    m_PlayerViewController = [AVPlayerViewController new];
+    m_PlayerViewController.player = m_Player;
+    m_PlayerViewController.showsPlaybackControls = NO;
+    m_PlayerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    m_IsPaused = YES;
+
+    [self presentViewController:m_PlayerViewController animated:NO completion:nil];
 }
 
--(void) Play {
-    dmLogInfo("VideoPlayerViewController::Play()");
-    [self Show];
-    [player play];
+-(void) Start {
+    DBGFNLOG;
+    if(m_IsPaused == YES) {
+        [m_Player resume];
+    } else {
+        [m_Player play];
+    }
 }
 
+-(void) Stop {
+    DBGFNLOG;
+    [m_Player play];
+}
+
+
+-(void) Pause {
+    DBGFNLOG;
+    [m_Player pause];
+}
+
+/*
 -(void) Show {
-    dmLogInfo("VideoPlayerViewController::Show()");
+    DBGFNLOG;
     //[self presentViewController:playerViewController animated:NO completion:nil];
 }
 
 -(void) Hide {
-    dmLogInfo("VideoPlayerViewController::Hide()");
+    DBGFNLOG;
     //[self dismissViewControllerAnimated:NO completion:nil];
 }
+*/
 
 - (void)PlayerItemDidReachEnd:(NSNotification *)notification {
-    dmLogInfo("VideoPlayerViewController::playerItemDidReachEnd()");
-    [self Hide];
+    DBGFNLOG;
 }
 
 // ----------------------------------------------------------------------------
@@ -55,14 +70,14 @@
 // ----------------------------------------------------------------------------
 
 -(void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
-    dmLogInfo("VideoPlayerViewController::observeValueForKeyPath()");
+    DBGFNLOG;
     
-    if (object == player && [keyPath isEqualToString:@"status"]) {
-        if (player.status == AVPlayerStatusFailed) {
+    if (object == m_Player && [keyPath isEqualToString:@"status"]) {
+        if (m_Player.status == AVPlayerStatusFailed) {
             dmLogInfo("AVPlayer Failed");
-        } else if (player.status == AVPlayerStatusReadyToPlay) {
+        } else if (m_Player.status == AVPlayerStatusReadyToPlay) {
             dmLogInfo("AVPlayer Ready to Play");
-            [self Play];
+            [self Start];
         } 
     }
 }
