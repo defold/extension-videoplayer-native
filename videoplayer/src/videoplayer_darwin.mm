@@ -2,20 +2,9 @@
 
 #include "videoplayer_private.h"
 #include "darwin/videoplayer_darwin_controller.h"
+#include "darwin/videoplayer_darwin_command_queue.h"
 
-dmArray<dmVideoPlayer::Command> g_CmdQueue;
 VideoPlayerController* g_VideoPlayerController;
-
-static void QueueCommand(dmVideoPlayer::Command* cmd) {
-    if (g_CmdQueue.Full()) {
-        g_CmdQueue.OffsetCapacity(8);
-    }
-    g_CmdQueue.Push(*cmd);
-}
-
-static void ClearCommandQueue() {
-    g_CmdQueue.SetSize(0);
-}
 
 // ----------------------------------------------------------------------------
 
@@ -26,7 +15,7 @@ int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb
 
 void dmVideoPlayer::Destroy(int video) {
     dmLogInfo("SIMON DEBUG: dmVideoPlayer::Destroy");
-    dmVideoPlayer::ClearCommandQueueFromID(video, g_CmdQueue.Size(), &g_CmdQueue[0]);
+    dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
     [g_VideoPlayerController Destroy:video];
 }
 
@@ -73,17 +62,17 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
     for(int i = 0; i < dmVideoPlayer::MAX_NUM_VIDEOS; ++i) {
         dmVideoPlayer::Destroy(i);
     }
-    ClearCommandQueue();
+    CommandQueue::Clear();
     [g_VideoPlayerController Exit];
     return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
-    if (g_CmdQueue.Empty()) {
+    if (CommandQueue::IsEmpty()) {
         return dmExtension::RESULT_OK; 
     }
-    dmVideoPlayer::ProcessCommandQueue(g_CmdQueue.Size(), &g_CmdQueue[0]);
-    g_CmdQueue.SetSize(0);
+    dmVideoPlayer::ProcessCommandQueue(CommandQueue::GetCount(), CommandQueue::GetCommands());
+    CommandQueue::Clear();
     return dmExtension::RESULT_OK;
 }
 

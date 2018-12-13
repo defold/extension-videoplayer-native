@@ -7,6 +7,8 @@
 @interface VideoPlayerViewController : UIViewController {
 	    AVAsset* m_Asset;				// Move to types.h?
 	    AVPlayerItem* m_PlayerItem;	// Move to types.h?
+	    float m_Width;
+	    float m_Height;
 
 	    AVPlayer* m_Player;			
 	    AVPlayerViewController* m_PlayerViewController;

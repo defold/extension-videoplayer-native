@@ -39,7 +39,7 @@
     //[m_AppDelegate.m_Window makeKeyAndVisible];
     //m_AppDelegate.window.hidden = false;
     
-    NSURL* url = GetUrlFromURI(uri);    
+    NSURL* url = Helper::GetUrlFromURI(uri);    
     [m_AppDelegate.m_ViewController PrepareVideoPlayer:url];
 
     //if (jvideo) {

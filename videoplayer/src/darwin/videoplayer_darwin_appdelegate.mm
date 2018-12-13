@@ -12,10 +12,6 @@
 // save old view controller!
 -(BOOL) application:(UIApplication*) application didFinishLaunchingWithOptions:(NSDictionary*) launchOptions {
     dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::didFinishLaunchingWithOptions");
-    /*m_Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    m_ViewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
-    m_Window.rootViewController = m_ViewController;
-    m_Window.hidden = NO;*/
     return YES;
 }
 

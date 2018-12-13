@@ -1,16 +1,19 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #pragma once
 #import <Foundation/Foundation.h>
-#include "../videoplayer_private.h"
+#import <AVFoundation/AVFoundation.h>
 
-#if !defined(ReturnIfNull)
-#define ReturnIfNull(x, y)    \
-if(x == NULL) {               \
-    dmLogInfo(#x" is null!"); \
-    return y;                 \
+#if !defined(ReturnIfFail)
+#define ReturnIf(test, ret) \
+if(test) { \
+	return ret; \
 }
 #endif
 
-NSURL* GetUrlFromURI(const char* uri);
+namespace Helper {
+	NSURL* GetUrlFromURI(const char* uri);
+	BOOL GetInfoFromAsset(const AVURLAsset* asset, float& width, float& height);	
+}
+
 
 #endif
