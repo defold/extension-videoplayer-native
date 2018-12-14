@@ -1,6 +1,7 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include "videoplayer_darwin_helper.h"
+#include "../videoplayer_private.h"
 
 namespace Helper {
     NSURL* GetUrlFromURI(const char* uri) {

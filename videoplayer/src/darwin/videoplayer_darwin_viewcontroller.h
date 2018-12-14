@@ -3,18 +3,29 @@
 
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
+#include "../videoplayer_private.h"
+
+struct SDarwinVideoInfo {   
+	int 						m_VideoId;
+	dmVideoPlayer::LuaCallback*	m_Callback;
+
+	AVURLAsset* 				m_Asset;
+	AVPlayerItem* 				m_PlayerItem;
+	AVPlayer* 					m_Player;
+	AVPlayerViewController* 	m_PlayerViewController;
+
+	float 						m_Width;
+	float 						m_Height;
+	BOOL 						m_IsPaused;
+};
 
 @interface VideoPlayerViewController : UIViewController {
-	    AVAsset* m_Asset;				// Move to types.h?
-	    AVPlayerItem* m_PlayerItem;	// Move to types.h?
-	    float m_Width;
-	    float m_Height;
-
-	    AVPlayer* m_Player;			
-	    AVPlayerViewController* m_PlayerViewController;
-	    BOOL m_IsPaused;
+		int 						m_NumVideos;
+		SDarwinVideoInfo 			m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
 	}
-	-(void) PrepareVideoPlayer: (NSURL*) url;
+	-(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
+	-(void) Destroy:(int)videoId;
+	
 	-(void) Start;
 	-(void) Stop;
 	-(void) Pause;

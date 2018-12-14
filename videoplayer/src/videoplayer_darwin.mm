@@ -9,7 +9,7 @@ VideoPlayerController* g_VideoPlayerController;
 // ----------------------------------------------------------------------------
 
 int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb) {
-    dmLogInfo("SIMON DEBUG: dmVideoPlayer::CreateWithUri");
+    dmLogInfo("SIMON DEBUG: dmVideoPlayer::CreateWithUri, cb:%p", cb);
     return [g_VideoPlayerController Create:uri callback:cb];
 }
 
@@ -68,9 +68,18 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
 }
 
 dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
+    dmLogInfo("SIMON DEBUG: dmVideoPlayer::Update");
     if (CommandQueue::IsEmpty()) {
         return dmExtension::RESULT_OK; 
     }
+    dmLogInfo("SIMON DEBUG: dmVideoPlayer::Update - CommandQueue not empty, processing %d commands", CommandQueue::GetCount());
+    dmVideoPlayer::Command* cmd = CommandQueue::GetCommands();
+    if(cmd == NULL) {
+        dmLogInfo("SIMON DEBUG: dmVideoPlayer::Update GOT NULL COMMAND!");
+    } else {
+        dmLogInfo("SIMON DEBUG: dmVideoPlayer::Update Command info: type:%d, id:%d, w:%d, h:%d, cb:%p", cmd->m_Type, cmd->m_ID, cmd->m_Width, cmd->m_Height, cmd->m_Callback);
+    }
+    
     dmVideoPlayer::ProcessCommandQueue(CommandQueue::GetCount(), CommandQueue::GetCommands());
     CommandQueue::Clear();
     return dmExtension::RESULT_OK;

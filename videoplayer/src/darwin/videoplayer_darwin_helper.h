@@ -15,5 +15,4 @@ namespace Helper {
 	BOOL GetInfoFromAsset(const AVURLAsset* asset, float& width, float& height);	
 }
 
-
 #endif

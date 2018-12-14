@@ -16,16 +16,25 @@
 }
 
 -(void) Create {
-    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Create");
-    m_Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    m_ViewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
-    m_Window.rootViewController = m_ViewController;
-    m_Window.hidden = NO;
-    [m_Window makeKeyAndVisible];
+	if([self IsCreated] == NO) {
+		dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Create");
+		m_Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+		m_ViewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
+		m_Window.rootViewController = m_ViewController;
+		m_Window.hidden = NO;
+		[m_Window makeKeyAndVisible];
+	}
+}
+
+
+-(BOOL) IsCreated {
+	return (m_Window != NULL) && (m_ViewController != NULL);
 }
 
 -(void) Destroy {
     dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Destroy");
+    //[m_ViewController release]
+    //[m_Window release]
 }
 
 -(void) Show {

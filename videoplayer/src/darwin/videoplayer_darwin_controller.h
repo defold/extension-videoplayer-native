@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------
+// TODO: Remove this class and move logic to videoplayer_darwin.mm
+// -----------------------------------------------------------------------
+
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #pragma once
 #include "../videoplayer_private.h"
@@ -6,22 +10,13 @@
 @class VideoPlayerAppDelegate;
 @class VideoPlayerViewController;
 
-struct SDarwinVideoInfo {   
-//	AVAsset* m_Asset;
-//	AVPlayerItem* m_PlayerItem;
-	dmVideoPlayer::LuaCallback m_Callback;
-	//jobject m_Video;
-};
-
 @interface VideoPlayerController : NSObject {
-		int 						m_NumVideos;
-    	SDarwinVideoInfo 			m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
 		VideoPlayerAppDelegate* 	m_AppDelegate;
 	}
 	-(id) init;
 	-(void) Exit;
 
-	-(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*) cb;
+	-(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*)cb;
 	-(void) Destroy: (int)video;
 	-(void) Show: (int)video;
 	-(void) Hide: (int)video;
@@ -29,7 +24,6 @@ struct SDarwinVideoInfo {
 	-(void) Stop: (int)video;
 	-(void) Pause: (int)video;
 	-(void) SetVisible: (int)video isVisible:(int)visible;
-	-(dmVideoPlayer::LuaCallback) getCallback: (int)video;
 @end
 
 #endif

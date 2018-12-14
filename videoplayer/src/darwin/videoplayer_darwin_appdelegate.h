@@ -8,6 +8,7 @@
 @interface VideoPlayerAppDelegate : UIResponder <UIApplicationDelegate>
 
 -(void) Create;
+-(BOOL) IsCreated;
 -(void) Destroy;
 
 -(void) Show;

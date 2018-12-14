@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------
+// TODO: Remove this class and move logic to videoplayer_darwin.mm
+// -----------------------------------------------------------------------
+
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include "videoplayer_darwin_controller.h"
@@ -14,7 +18,6 @@
         dmLogInfo("SIMON DEBUG: VideoPlayerController -> Entered main init");
         m_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
         dmExtension::RegisteriOSUIApplicationDelegate(m_AppDelegate);
-        m_NumVideos = 0;
     }
     return self;
 }
@@ -23,43 +26,24 @@
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Exit");
     dmExtension::UnregisteriOSUIApplicationDelegate(m_AppDelegate);
     [m_AppDelegate release];
-    m_AppDelegate = 0;
+    m_AppDelegate = NULL;
 }
 
--(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*) cb {
+-(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*)cb {
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Create");
-
-    if (m_NumVideos >= dmVideoPlayer::MAX_NUM_VIDEOS) {
-        dmLogError("Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
-        return -1;
-    }
- 
+    
     [m_AppDelegate Create];
 
     //[m_AppDelegate.m_Window makeKeyAndVisible];
     //m_AppDelegate.window.hidden = false;
     
     NSURL* url = Helper::GetUrlFromURI(uri);    
-    [m_AppDelegate.m_ViewController PrepareVideoPlayer:url];
-
-    //if (jvideo) {
-        int id = m_NumVideos;
-        SDarwinVideoInfo& info = m_Videos[id];
-        //info.m_Video = jvideo;
-        info.m_Callback = *cb;
-        m_NumVideos++;
-        return id;
-    //}
-    return -1;
+    return [m_AppDelegate.m_ViewController Create:url callback:cb];
 }
 
--(void) Destroy: (int)video {
+-(void) Destroy: (int)videoId {
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Destroy");
-    
-    SDarwinVideoInfo& info = m_Videos[video];
-    dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    //info.m_Video = 0;
-    m_NumVideos--;
+    [m_AppDelegate.m_ViewController Destroy:videoId];
 }
 
 -(void) Show: (int)video {
@@ -94,11 +78,6 @@
     } else {
         [self Show:video];
     }
-}
-
--(dmVideoPlayer::LuaCallback) getCallback: (int)video {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::getCallback");
-    return m_Videos[video].m_Callback;
 }
 
 @end
