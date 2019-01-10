@@ -36,6 +36,7 @@
     playerViewController.player = player;
     playerViewController.showsPlaybackControls = NO;
     playerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    playerViewController.videoGravity = AVLayerVideoGravityResizeAspectFill;
     
     UIWindow* window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     window.rootViewController = self;
