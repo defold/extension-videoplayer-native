@@ -11,7 +11,6 @@
     self = [super init];
     if (self != nil) {
         m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
-        m_PrevViewController = [m_PrevWindow rootViewController];
     }
     return self;
 }
