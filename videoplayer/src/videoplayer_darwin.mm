@@ -1,50 +1,63 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include "videoplayer_private.h"
-#include "darwin/videoplayer_darwin_controller.h"
+#include "darwin/videoplayer_darwin_helper.h"
+#include "darwin/videoplayer_darwin_appdelegate.h"
+#include "darwin/videoplayer_darwin_viewcontroller.h"
 #include "darwin/videoplayer_darwin_command_queue.h"
 
-VideoPlayerController* g_VideoPlayerController;
+VideoPlayerAppDelegate* g_AppDelegate         = NULL;
+VideoPlayerViewController* g_ViewController   = NULL;
 
 // ----------------------------------------------------------------------------
 
 int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb) {
-    return [g_VideoPlayerController Create:uri callback:cb];
+    g_ViewController = [[[VideoPlayerViewController alloc] init] initWithNibName:nil bundle:nil];
+    NSURL* url = Helper::GetUrlFromURI(uri);    
+    return [g_ViewController Create:url callback:cb];
 }
 
 void dmVideoPlayer::Destroy(int video) {
     dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
-    [g_VideoPlayerController Destroy:video];
+    [g_ViewController Destroy:video];
+    [g_ViewController release];
+    g_ViewController = NULL;
 }
 
 void dmVideoPlayer::Show(int video) {
-    [g_VideoPlayerController Show:video];
+    [g_ViewController Show:video];
 }
 
 void dmVideoPlayer::Hide(int video) {
-    [g_VideoPlayerController Hide:video];
+    [g_ViewController Hide:video];
 }
 
 void dmVideoPlayer::Start(int video) {
-    [g_VideoPlayerController Start:video];
+    [g_ViewController Start:video];
 }
 
 void dmVideoPlayer::Stop(int video) {
-    [g_VideoPlayerController Stop:video];
+    [g_ViewController Stop:video];
 }
 
 void dmVideoPlayer::Pause(int video) {
-    [g_VideoPlayerController Pause:video];
+    [g_ViewController Pause:video];
 }
 
 void dmVideoPlayer::SetVisible(int video, int visible) {
-    [g_VideoPlayerController SetVisible:video isVisible:visible];
+    if(visible == 0) {
+        Hide(video);
+    } else {
+        Show(video);
+    }
 }
 
 // ----------------------------------------------------------------------------
 
 dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params) {
-    g_VideoPlayerController = [[VideoPlayerController alloc] init];
+    g_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
+    dmExtension::RegisteriOSUIApplicationDelegate(g_AppDelegate);
+    g_ViewController = NULL;
     return dmExtension::RESULT_OK;
 }
 
@@ -53,7 +66,10 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
         dmVideoPlayer::Destroy(i);
     }
     CommandQueue::Clear();
-    [g_VideoPlayerController Exit];
+    
+    dmExtension::UnregisteriOSUIApplicationDelegate(g_AppDelegate);
+    [g_AppDelegate release];
+    g_AppDelegate = NULL;
     return dmExtension::RESULT_OK;
 }
 
