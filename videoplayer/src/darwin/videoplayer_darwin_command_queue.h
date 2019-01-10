@@ -2,16 +2,16 @@
 #pragma once
 
 namespace dmVideoPlayer {
-	struct Command;
+    struct Command;
 }
 
 namespace CommandQueue {
-	void Queue(dmVideoPlayer::Command* cmd);
-	void Clear();
-	
-	int GetCount();
-	dmVideoPlayer::Command* GetCommands();
-	bool IsEmpty();
+    void Queue(dmVideoPlayer::Command* cmd);
+    void Clear();
+    
+    int GetCount();
+    dmVideoPlayer::Command* GetCommands();
+    bool IsEmpty();
 }
 
 #endif

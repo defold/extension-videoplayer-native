@@ -6,13 +6,13 @@
 #if !defined(ReturnIfFail)
 #define ReturnIf(test, ret) \
 if(test) { \
-	return ret; \
+    return ret; \
 }
 #endif
 
 namespace Helper {
-	NSURL* GetUrlFromURI(const char* uri);
-	BOOL GetInfoFromAsset(const AVURLAsset* asset, float& width, float& height);	
+    NSURL* GetUrlFromURI(const char* uri);
+    BOOL GetInfoFromAsset(const AVURLAsset* asset, float& width, float& height);    
 }
 
 #endif
