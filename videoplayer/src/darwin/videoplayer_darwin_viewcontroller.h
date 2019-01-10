@@ -13,7 +13,6 @@ struct SDarwinVideoInfo {
 	AVPlayerItem* 				m_PlayerItem;
 	AVPlayer* 					m_Player;
 	AVPlayerViewController* 	m_PlayerViewController;
-	//AVPlayerLayer*				m_PlayerLayer;
 	UIWindow*					m_Window;
 	
 	float 						m_Width;
@@ -29,13 +28,13 @@ struct SDarwinVideoInfo {
 		UIWindow*					m_PrevWindow;
 	}
 	-(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
-	-(void) Destroy:(int)videoId;
-	
-	-(void) Start;
-	-(void) Stop;
-	-(void) Pause;
-	-(void) Show;
-	-(void) Hide;
+	-(void) Destroy:(int)video;
+	-(BOOL) IsReady:(int)video;
+	-(void) Start:(int)video;
+	-(void) Stop:(int)video;
+	-(void) Pause:(int)video;
+	-(void) Show:(int)video;
+	-(void) Hide:(int)video;
 @end
 
 #endif

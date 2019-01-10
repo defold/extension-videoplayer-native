@@ -5,52 +5,19 @@
 
 @implementation VideoPlayerAppDelegate
 
-//@synthesize m_Window;
 @synthesize m_ViewController;
 
 -(BOOL) application:(UIApplication*) application didFinishLaunchingWithOptions:(NSDictionary*) launchOptions {
-    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::didFinishLaunchingWithOptions");
     return YES;
 }
 
 -(void) Create {
-	//if([self IsCreated] == NO) {
-		dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Create");
-		m_ViewController = [[VideoPlayerViewController alloc] initWithNibName:nil bundle:nil];
-//		m_Window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-//		m_Window.rootViewController = m_ViewController;
-//		m_Window.hidden = NO;
-//		[m_Window makeKeyAndVisible];
-	//}
-}
-
-
--(BOOL) IsCreated {
-	return YES;//(m_Window != NULL) && (m_ViewController != NULL);
+    m_ViewController = [[[VideoPlayerViewController alloc] init] initWithNibName:nil bundle:nil];
 }
 
 -(void) Destroy {
-    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Destroy");
     [m_ViewController release];
-    //[m_Window release];
 }
-
-/*
--(void) Show {
-    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Show");
-    //m_Window.hidden = NO;
-}
-
--(void) Hide {
-    dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::Hide");
-    //m_Window.hidden = YES;
-}
-
--(BOOL) IsHidden {
-    //dmLogInfo("SIMON DEBUG: VideoPlayerAppDelegate::IsHidden: %d", m_Window.hidden);
-    return NO;//m_Window.hidden;
-}
-*/
 
 @end
 

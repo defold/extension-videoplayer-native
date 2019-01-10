@@ -13,9 +13,7 @@
 @implementation VideoPlayerController
 
 -(id) init {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::init");
     if (self = [super init]) {
-        dmLogInfo("SIMON DEBUG: VideoPlayerController -> Entered main init");
         m_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
         dmExtension::RegisteriOSUIApplicationDelegate(m_AppDelegate);
     }
@@ -23,53 +21,43 @@
 }
 
 -(void) Exit {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Exit");
     dmExtension::UnregisteriOSUIApplicationDelegate(m_AppDelegate);
     [m_AppDelegate release];
     m_AppDelegate = NULL;
 }
 
--(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*)cb {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Create");
-    
+-(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*)cb {    
     [m_AppDelegate Create];
     NSURL* url = Helper::GetUrlFromURI(uri);    
     return [m_AppDelegate.m_ViewController Create:url callback:cb];
 }
 
--(void) Destroy: (int)videoId {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Destroy");
-    [m_AppDelegate.m_ViewController Destroy:videoId];
+-(void) Destroy: (int)video {
+    [m_AppDelegate.m_ViewController Destroy:video];
     [m_AppDelegate Destroy];
 }
 
 -(void) Show: (int)video {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Show");
-    [m_AppDelegate.m_ViewController Show];
+    [m_AppDelegate.m_ViewController Show:video];
 }
 
 -(void) Hide: (int)video {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Hide");
-    [m_AppDelegate.m_ViewController Hide];
+    [m_AppDelegate.m_ViewController Hide:video];
 }
 
 -(void) Start: (int)video {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Start");
-    [m_AppDelegate.m_ViewController Start];
+    [m_AppDelegate.m_ViewController Start:video];
 }
 
 -(void) Stop: (int)video {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Stop");
-    [m_AppDelegate.m_ViewController Stop];
+    [m_AppDelegate.m_ViewController Stop:video];
 }
 
 -(void) Pause: (int)video {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::Pause");
-    [m_AppDelegate.m_ViewController Pause];
+    [m_AppDelegate.m_ViewController Pause:video];
 }
 
 -(void) SetVisible: (int)video isVisible:(int)visible {
-    dmLogInfo("SIMON DEBUG: VideoPlayerController::SetVisible");
     if(visible == 0) {
         [self Hide:video];
     } else {

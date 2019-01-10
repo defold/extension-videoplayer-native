@@ -2,20 +2,9 @@
 
 namespace dmVideoPlayer
 {
-/*
-    struct VideoEventInfo
-    {
-        int             m_Id;
-        VideoEvent      m_Event;
-        int             m_Width;
-        int             m_Height;
-    };
-*/    
+
 void RunCallback(LuaCallback* cb, VideoEventInfo* info)
 {
-    dmLogInfo("SIMON DEBUG: dmVideoPlayer::RunCallback - %p, id:%d, w:%d, h:%d", cb, info->m_Id, info->m_Width, info->m_Height);
-
-    
     if (cb->m_Callback == LUA_NOREF)
     {
         dmLogError("No callback set");
