@@ -1,7 +1,3 @@
-// -----------------------------------------------------------------------
-// TODO: Remove this class and move logic to videoplayer_darwin.mm
-// -----------------------------------------------------------------------
-
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include "videoplayer_darwin_controller.h"
@@ -16,45 +12,47 @@
     if (self = [super init]) {
         m_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
         dmExtension::RegisteriOSUIApplicationDelegate(m_AppDelegate);
+        m_ViewController = NULL;
     }
     return self;
 }
 
--(void) Exit {
+-(void) Exit {    
     dmExtension::UnregisteriOSUIApplicationDelegate(m_AppDelegate);
     [m_AppDelegate release];
     m_AppDelegate = NULL;
 }
 
--(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*)cb {    
-    [m_AppDelegate Create];
+-(int) Create: (const char*) uri callback:(dmVideoPlayer::LuaCallback*)cb {
+    m_ViewController = [[[VideoPlayerViewController alloc] init] initWithNibName:nil bundle:nil];
     NSURL* url = Helper::GetUrlFromURI(uri);    
-    return [m_AppDelegate.m_ViewController Create:url callback:cb];
+    return [m_ViewController Create:url callback:cb];
 }
 
 -(void) Destroy: (int)video {
-    [m_AppDelegate.m_ViewController Destroy:video];
-    [m_AppDelegate Destroy];
+    [m_ViewController Destroy:video];
+    [m_ViewController release];
+    m_ViewController = NULL;
 }
 
 -(void) Show: (int)video {
-    [m_AppDelegate.m_ViewController Show:video];
+    [m_ViewController Show:video];
 }
 
 -(void) Hide: (int)video {
-    [m_AppDelegate.m_ViewController Hide:video];
+    [m_ViewController Hide:video];
 }
 
 -(void) Start: (int)video {
-    [m_AppDelegate.m_ViewController Start:video];
+    [m_ViewController Start:video];
 }
 
 -(void) Stop: (int)video {
-    [m_AppDelegate.m_ViewController Stop:video];
+    [m_ViewController Stop:video];
 }
 
 -(void) Pause: (int)video {
-    [m_AppDelegate.m_ViewController Pause:video];
+    [m_ViewController Pause:video];
 }
 
 -(void) SetVisible: (int)video isVisible:(int)visible {

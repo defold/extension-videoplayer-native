@@ -1,7 +1,3 @@
-// -----------------------------------------------------------------------
-// TODO: Remove this class and move logic to videoplayer_darwin.mm
-// -----------------------------------------------------------------------
-
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #pragma once
 #include "../videoplayer_private.h"
@@ -11,7 +7,8 @@
 @class VideoPlayerViewController;
 
 @interface VideoPlayerController : NSObject {
-		VideoPlayerAppDelegate* 	m_AppDelegate;
+	VideoPlayerAppDelegate* 	m_AppDelegate;
+	VideoPlayerViewController*	m_ViewController;
 	}
 	-(id) init;
 	-(void) Exit;
