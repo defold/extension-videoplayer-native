@@ -33,10 +33,6 @@
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Create");
     
     [m_AppDelegate Create];
-
-    //[m_AppDelegate.m_Window makeKeyAndVisible];
-    //m_AppDelegate.window.hidden = false;
-    
     NSURL* url = Helper::GetUrlFromURI(uri);    
     return [m_AppDelegate.m_ViewController Create:url callback:cb];
 }
@@ -44,16 +40,17 @@
 -(void) Destroy: (int)videoId {
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Destroy");
     [m_AppDelegate.m_ViewController Destroy:videoId];
+    [m_AppDelegate Destroy];
 }
 
 -(void) Show: (int)video {
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Show");
-    [m_AppDelegate Show];
+    [m_AppDelegate.m_ViewController Show];
 }
 
 -(void) Hide: (int)video {
     dmLogInfo("SIMON DEBUG: VideoPlayerController::Hide");
-    [m_AppDelegate Hide];
+    [m_AppDelegate.m_ViewController Hide];
 }
 
 -(void) Start: (int)video {
