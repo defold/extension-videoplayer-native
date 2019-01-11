@@ -1,5 +1,4 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
-
 #include "videoplayer_darwin_command_queue.h"
 #include "../videoplayer_private.h"
 

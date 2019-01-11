@@ -1,5 +1,4 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
-
 #include "videoplayer_private.h"
 #include "darwin/videoplayer_darwin_helper.h"
 #include "darwin/videoplayer_darwin_appdelegate.h"
@@ -19,29 +18,41 @@ int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb
 
 void dmVideoPlayer::Destroy(int video) {
     dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
-    [g_ViewController Destroy:video];
-    [g_ViewController release];
-    g_ViewController = NULL;
+    if(g_ViewController != NULL) {
+        [g_ViewController Destroy:video];
+        [g_ViewController release];
+        g_ViewController = NULL;
+    }
 }
 
 void dmVideoPlayer::Show(int video) {
-    [g_ViewController Show:video];
+    if(g_ViewController != NULL) {
+        [g_ViewController Show:video];
+    }
 }
 
 void dmVideoPlayer::Hide(int video) {
-    [g_ViewController Hide:video];
+    if(g_ViewController != NULL) {
+        [g_ViewController Hide:video];
+    }
 }
 
 void dmVideoPlayer::Start(int video) {
-    [g_ViewController Start:video];
+    if(g_ViewController != NULL) {
+        [g_ViewController Start:video];
+    }
 }
 
 void dmVideoPlayer::Stop(int video) {
-    [g_ViewController Stop:video];
+    if(g_ViewController != NULL) {
+        [g_ViewController Stop:video];
+    }
 }
 
 void dmVideoPlayer::Pause(int video) {
-    [g_ViewController Pause:video];
+    if(g_ViewController != NULL) {
+        [g_ViewController Pause:video];
+    }
 }
 
 void dmVideoPlayer::SetVisible(int video, int visible) {
@@ -57,7 +68,6 @@ void dmVideoPlayer::SetVisible(int video, int visible) {
 dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params) {
     g_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
     dmExtension::RegisteriOSUIApplicationDelegate(g_AppDelegate);
-    g_ViewController = NULL;
     return dmExtension::RESULT_OK;
 }
 

@@ -23,6 +23,7 @@ shared_state = 1
 
 [ios]
 bundle_identifier = com.defoldexample.videoplayer
+launch_image_750x1334 = /res/ios/splash_iphone6s.png
 
 [android]
 package = com.defoldexample.videoplayer

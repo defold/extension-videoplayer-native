@@ -1,5 +1,4 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
-
 #include "videoplayer_darwin_viewcontroller.h"
 #include "videoplayer_darwin_command_queue.h"
 #include "videoplayer_darwin_helper.h"
@@ -37,8 +36,11 @@
     playerViewController.showsPlaybackControls = NO;
     playerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
     playerViewController.videoGravity = AVLayerVideoGravityResizeAspectFill;
+
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
     
-    UIWindow* window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    UIWindow* window = [[UIWindow alloc] initWithFrame:screenBounds];
     window.rootViewController = self;
     window.hidden = YES;
 
@@ -103,7 +105,6 @@
     }
 }
 
-
 -(void) Pause:(int)video {
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
@@ -130,7 +131,6 @@
         dmLogError("No video to hide!");
     }
 }
-
 
 // ----------------------------------------------------------------------------
 // CALLBACKS

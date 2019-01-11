@@ -1,6 +1,5 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #pragma once
-
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
 #include "../videoplayer_private.h"
