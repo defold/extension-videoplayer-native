@@ -51,7 +51,6 @@
     info.m_Player = player;
     info.m_PlayerViewController = playerViewController;
     info.m_Window = window;
-    info.m_IsPaused = NO; 
     info.m_VideoId = video;
     info.m_Callback = *cb;
 
@@ -79,8 +78,12 @@
     [m_PrevWindow makeKeyAndVisible];
 }
 
+-(bool) IsReady:(int)video {
+    return m_SelectedVideoId == video;
+}
+
 -(void) Start:(int)video {
-    if(m_SelectedVideoId != -1) {
+    if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         info.m_Window.hidden = NO;
         [self presentViewController:info.m_PlayerViewController animated:NO completion:nil];
@@ -91,7 +94,7 @@
 }
 
 -(void) Stop:(int)video {
-    if(m_SelectedVideoId != -1) {
+    if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         [info.m_Player seekToTime:CMTimeMake(0, 1)];
         [info.m_Player pause];
@@ -102,7 +105,7 @@
 
 
 -(void) Pause:(int)video {
-    if(m_SelectedVideoId != -1) {
+    if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         [info.m_Player pause];
     } else {
@@ -111,7 +114,7 @@
 }
 
 -(void) Show:(int)video {
-    if(m_SelectedVideoId != -1) {
+    if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         info.m_Window.hidden = NO;
     } else {
@@ -120,7 +123,7 @@
 }
 
 -(void) Hide:(int)video {
-    if(m_SelectedVideoId != -1) {
+    if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         info.m_Window.hidden = YES;
     } else {

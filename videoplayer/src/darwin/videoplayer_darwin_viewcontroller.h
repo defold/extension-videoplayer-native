@@ -17,7 +17,6 @@ struct SDarwinVideoInfo {
     
     float                       m_Width;
     float                       m_Height;
-    BOOL                        m_IsPaused;
 };
 
 @interface VideoPlayerViewController : UIViewController {
@@ -28,7 +27,7 @@ struct SDarwinVideoInfo {
     }
     -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
     -(void) Destroy:(int)video;
-    -(BOOL) IsReady:(int)video;
+    -(bool) IsReady:(int)video;
     -(void) Start:(int)video;
     -(void) Stop:(int)video;
     -(void) Pause:(int)video;
