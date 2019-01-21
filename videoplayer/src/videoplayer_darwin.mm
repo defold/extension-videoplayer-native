@@ -11,18 +11,15 @@ VideoPlayerViewController* g_ViewController   = NULL;
 // ----------------------------------------------------------------------------
 
 int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb) {
-    g_ViewController = [[[VideoPlayerViewController alloc] init] initWithNibName:nil bundle:nil];
     NSURL* url = Helper::GetUrlFromURI(uri);    
     return [g_ViewController Create:url callback:cb];
 }
 
 void dmVideoPlayer::Destroy(int video) {
-    dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
     if(g_ViewController != NULL) {
         [g_ViewController Destroy:video];
-        [g_ViewController release];
-        g_ViewController = NULL;
     }
+    dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
 }
 
 void dmVideoPlayer::Show(int video) {
@@ -68,6 +65,11 @@ void dmVideoPlayer::SetVisible(int video, int visible) {
 dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params) {
     g_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
     dmExtension::RegisteriOSUIApplicationDelegate(g_AppDelegate);
+
+    if(g_ViewController == NULL) {
+        g_ViewController = [[[VideoPlayerViewController alloc] init] initWithNibName:nil bundle:nil];
+    }
+
     return dmExtension::RESULT_OK;
 }
 
@@ -76,6 +78,11 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
         dmVideoPlayer::Destroy(i);
     }
     CommandQueue::Clear();
+
+    if(g_ViewController != NULL) {
+        [g_ViewController release];
+        g_ViewController = NULL;
+    }
     
     dmExtension::UnregisteriOSUIApplicationDelegate(g_AppDelegate);
     [g_AppDelegate release];
@@ -86,9 +93,11 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
 dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
     if (CommandQueue::IsEmpty()) {
         return dmExtension::RESULT_OK; 
-    }    
-    dmVideoPlayer::ProcessCommandQueue(CommandQueue::GetCount(), CommandQueue::GetCommands());
-    CommandQueue::Clear();
+    }
+    if(g_ViewController != NULL) {
+        dmVideoPlayer::ProcessCommandQueue(CommandQueue::GetCount(), CommandQueue::GetCommands());
+        CommandQueue::Clear();
+    }
     return dmExtension::RESULT_OK;
 }
 

@@ -3,6 +3,7 @@
 #include "videoplayer_darwin_command_queue.h"
 #include "videoplayer_darwin_helper.h"
 #include <dmsdk/sdk.h>    // Logging
+#include <algorithm>    // std::max
 
 @implementation VideoPlayerViewController
 
@@ -35,13 +36,13 @@
     playerViewController.player = player;
     playerViewController.showsPlaybackControls = NO;
     playerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
-    playerViewController.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    playerViewController.videoGravity = AVLayerVideoGravityResizeAspectFill;    
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
     
     UIWindow* window = [[UIWindow alloc] initWithFrame:screenBounds];
-    window.rootViewController = self;
+    window.rootViewController = playerViewController;
     window.hidden = YES;
 
     int video = m_NumVideos;
@@ -61,8 +62,8 @@
     selector: @selector(PlayerItemDidReachEnd:)
     name: AVPlayerItemDidPlayToEndTimeNotification
     object: [player currentItem]];
-
     m_NumVideos++;
+
     return video;
 }
 
@@ -73,10 +74,13 @@
     }
     
     SDarwinVideoInfo& info = m_Videos[video];
+    m_NumVideos = std::max(0, m_NumVideos - 1);
+    [[NSNotificationCenter defaultCenter] removeObserver: self];
     [info.m_Window release];
     [info.m_PlayerViewController release];
     [info.m_Player release];
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
+    
     [m_PrevWindow makeKeyAndVisible];
 }
 
@@ -88,7 +92,7 @@
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         info.m_Window.hidden = NO;
-        [self presentViewController:info.m_PlayerViewController animated:NO completion:nil];
+        [self showViewController:info.m_PlayerViewController sender:self];
         [info.m_Player play];
     } else {
         dmLogError("No video to start!");
