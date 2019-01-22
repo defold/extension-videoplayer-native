@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
+#if defined(DM_PLATFORM_IOS) //|| defined(DM_PLATFORM_OSX)
 #pragma once
 
 namespace dmVideoPlayer {
