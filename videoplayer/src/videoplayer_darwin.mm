@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_IOS) //|| defined(DM_PLATFORM_OSX)
+#if defined(DM_PLATFORM_IOS)
 #include "videoplayer_private.h"
 #include "darwin/videoplayer_darwin_helper.h"
 #include "darwin/videoplayer_darwin_appdelegate.h"
@@ -100,20 +100,5 @@ dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* params) {
     }
     return dmExtension::RESULT_OK;
 }
-
-#else // OSX
-
-#include "videoplayer_private.h"
-int dmVideoPlayer::CreateWithUri(const char* /*uri*/, dmVideoPlayer::LuaCallback* /*cb*/) { return -1; }
-void dmVideoPlayer::Destroy(int /*video*/) {  }
-void dmVideoPlayer::Show(int /*video*/) {  }
-void dmVideoPlayer::Hide(int /*video*/) {  }
-void dmVideoPlayer::Start(int /*video*/) {  }
-void dmVideoPlayer::Stop(int /*video*/) {  }
-void dmVideoPlayer::Pause(int /*video*/) {  }
-void dmVideoPlayer::SetVisible(int /*video*/, int /*visible*/) {  }
-dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* /*params*/) { return dmExtension::RESULT_INIT_ERROR; }
-dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* /*params*/) { return dmExtension::RESULT_INIT_ERROR; }
-dmExtension::Result dmVideoPlayer::Update(dmExtension::Params* /*params*/) { return dmExtension::RESULT_INIT_ERROR; }
 
 #endif
