@@ -53,11 +53,15 @@
     info.m_VideoId = video;
     info.m_Callback = *cb;
 
-    [player addObserver:self forKeyPath:@"status" options:0 context:&info];
+    [player addObserver:self forKeyPath:@"status"
+        options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionInitial)
+        context:&info];
+
     [[NSNotificationCenter defaultCenter] addObserver: self
-    selector: @selector(PlayerItemDidReachEnd:)
-    name: AVPlayerItemDidPlayToEndTimeNotification
-    object: [player currentItem]];
+        selector: @selector(PlayerItemDidReachEnd:)
+        name: AVPlayerItemDidPlayToEndTimeNotification
+        object: [player currentItem]];
+
     m_NumVideos++;
     [player play];
 
@@ -68,6 +72,8 @@
 }
 
 -(void) Destroy:(int)video {
+    dmLogInfo("Destroy: %d", video);
+    
     if (m_NumVideos > dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Invalid video id: %d", video);
         return;
@@ -215,7 +221,7 @@
 }
 
 - (void)PlayerItemDidReachEnd:(NSNotification *)notification {
-    dmLogInfo("PlayerItemDidReachEnd!");
+    dmLogInfo("PlayerItemDidReachEnd!, m_SelectedVideoId: %d", m_SelectedVideoId);
     
     SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
     m_SelectedVideoId = -1;
@@ -227,6 +233,8 @@
     cmd.m_Width         = (int)info.m_Width;
     cmd.m_Height        = (int)info.m_Height;
     CommandQueue::Queue(&cmd);
+
+    dmLogInfo("PlayerItemDidReachEnd done!");    
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
