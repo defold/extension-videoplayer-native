@@ -63,7 +63,6 @@
         object: [player currentItem]];
 
     m_NumVideos++;
-    [player play];
 
     // HAX TEST
     //m_SelectedVideoId = info.m_VideoId;
