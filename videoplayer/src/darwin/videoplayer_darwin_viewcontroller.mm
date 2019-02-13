@@ -39,10 +39,6 @@
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
-    
-    //UIWindow* window = [[UIWindow alloc] initWithFrame:screenBounds];
-    //window.rootViewController = self;
-    //window.hidden = YES;
 
     m_PrevWindow.rootViewController = self;
 
@@ -54,7 +50,6 @@
     info.m_Height = height;
     info.m_Player = player;
     info.m_PlayerLayer = playerLayer;
-    //info.m_Window = window;
     info.m_VideoId = video;
     info.m_Callback = *cb;
 
@@ -65,6 +60,9 @@
     object: [player currentItem]];
     m_NumVideos++;
 
+    // HAX TEST
+    //m_SelectedVideoId = info.m_VideoId;
+        
     return video;
 }
 
@@ -77,10 +75,7 @@
     SDarwinVideoInfo& info = m_Videos[video];
     m_NumVideos = std::max(0, m_NumVideos - 1);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
-    //[info.m_Window release];
-    //info.m_Window = nil;
     
-    //[info.m_PlayerViewController release];
     [info.m_PlayerLayer removeFromSuperlayer];
     [info.m_PlayerLayer release];
     info.m_PlayerLayer = nil;
@@ -89,19 +84,33 @@
     info.m_Player = nil;
     
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    //[m_PrevWindow makeKeyAndVisible];
     m_PrevWindow.rootViewController = m_PrevRootViewController;
 }
 
 -(bool) IsReady:(int)video {
+    dmLogInfo("IsReady video id: %d, m_SelectedVideoId: %d", video, m_SelectedVideoId);
     return m_SelectedVideoId == video;
+    /*
+    if(m_SelectedVideoId != video) {
+        return false;
+    }
+
+    SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+    if(info.m_PlayerLayer == nil) {
+        dmLogInfo("IsReady info.m_PlayerLayer is nil!");
+        return false;
+    }
+    
+    bool isReady = info.m_PlayerLayer.readyForDisplay == YES;
+    dmLogInfo("IsReady isReady: %d", info.m_PlayerLayer.readyForDisplay);
+    return isReady;
+    */ 
 }
 
 -(void) Start:(int)video {
+    dmLogInfo("Start!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        //info.m_Window.hidden = NO;
-        //[self showViewController:info.m_PlayerViewController sender:self];
         [info.m_Player play];
     } else {
         dmLogError("No video to start!");
@@ -109,6 +118,7 @@
 }
 
 -(void) Stop:(int)video {
+    dmLogInfo("Stop!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         [info.m_Player seekToTime:CMTimeMake(0, 1)];
@@ -119,6 +129,7 @@
 }
 
 -(void) Pause:(int)video {
+    dmLogInfo("Pause!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         [info.m_Player pause];
@@ -128,6 +139,7 @@
 }
 
 -(void) Show:(int)video {
+    dmLogInfo("Show!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         //info.m_Window.hidden = NO;
@@ -137,6 +149,7 @@
 }
 
 -(void) Hide:(int)video {
+    dmLogInfo("Hide!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         //info.m_Window.hidden = YES;
@@ -150,12 +163,16 @@
 // ----------------------------------------------------------------------------
 
 -(void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
+    dmLogInfo("HALLAUJA!");
+    
     bool invalidParams = false;
     SDarwinVideoInfo* info = (SDarwinVideoInfo*)context;
     if(info == NULL) {
         dmLogError("Video info missing!");
         invalidParams = true;
     }
+
+    dmLogInfo("HALLAUJA 2!");
     
     if (info->m_VideoId >= dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Invalid video id: %d", info->m_VideoId);
@@ -164,8 +181,11 @@
 
     if(!invalidParams) {
         AVPlayer* player = info->m_Player;
+        dmLogInfo("HALLAUJA 4!");
         if (object == player && [keyPath isEqualToString:@"status"]) {
+            dmLogInfo("HALLAUJA 5!");
             if (player.status == AVPlayerStatusReadyToPlay) {
+                dmLogInfo("HALLAUJA 6!");
                 m_SelectedVideoId = info->m_VideoId;
                 dmVideoPlayer::Command cmd;
                 memset(&cmd, 0, sizeof(cmd));
@@ -182,6 +202,8 @@
         }
     }
 
+    dmLogInfo("HALLAUJA 3!");
+    
     // Error!
     dmVideoPlayer::Command cmd;
     memset(&cmd, 0, sizeof(cmd));
@@ -192,6 +214,8 @@
 }
 
 - (void)PlayerItemDidReachEnd:(NSNotification *)notification {
+    dmLogInfo("PlayerItemDidReachEnd!");
+    
     SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
     m_SelectedVideoId = -1;
     dmVideoPlayer::Command cmd;
