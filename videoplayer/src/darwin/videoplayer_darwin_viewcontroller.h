@@ -11,7 +11,7 @@ struct SDarwinVideoInfo {
     AVURLAsset*                 m_Asset;
     AVPlayerItem*               m_PlayerItem;
     AVPlayer*                   m_Player;
-    AVPlayerViewController*     m_PlayerViewController;
+    AVPlayerLayer*              m_PlayerLayer;
     UIWindow*                   m_Window;
     
     float                       m_Width;

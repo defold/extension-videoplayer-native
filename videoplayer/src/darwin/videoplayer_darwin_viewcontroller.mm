@@ -32,17 +32,15 @@
     AVPlayerItem* playerItem = [AVPlayerItem playerItemWithAsset:asset];
     AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
 
-    AVPlayerViewController* playerViewController = [AVPlayerViewController new];
-    playerViewController.player = player;
-    playerViewController.showsPlaybackControls = NO;
-    playerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
-    playerViewController.videoGravity = AVLayerVideoGravityResizeAspectFill;    
+    AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
+    playerLayer.frame = self.view.bounds;
+    [self.view.layer addSublayer:playerLayer];
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
     
     UIWindow* window = [[UIWindow alloc] initWithFrame:screenBounds];
-    window.rootViewController = playerViewController;
+    window.rootViewController = self;
     window.hidden = YES;
 
     int video = m_NumVideos;
@@ -52,7 +50,7 @@
     info.m_Width = width;
     info.m_Height = height;
     info.m_Player = player;
-    info.m_PlayerViewController = playerViewController;
+    info.m_PlayerLayer = playerLayer;
     info.m_Window = window;
     info.m_VideoId = video;
     info.m_Callback = *cb;
@@ -77,10 +75,17 @@
     m_NumVideos = std::max(0, m_NumVideos - 1);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
     [info.m_Window release];
-    [info.m_PlayerViewController release];
-    [info.m_Player release];
-    dmVideoPlayer::UnregisterCallback(&info.m_Callback);
+    info.m_Window = nil;
     
+    //[info.m_PlayerViewController release];
+    [info.m_PlayerLayer removeFromSuperlayer];
+    [info.m_PlayerLayer release];
+    info.m_PlayerLayer = nil;
+    
+    [info.m_Player release];
+    info.m_Player = nil;
+    
+    dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     [m_PrevWindow makeKeyAndVisible];
 }
 
@@ -92,7 +97,7 @@
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         info.m_Window.hidden = NO;
-        [self showViewController:info.m_PlayerViewController sender:self];
+        //[self showViewController:info.m_PlayerViewController sender:self];
         [info.m_Player play];
     } else {
         dmLogError("No video to start!");
