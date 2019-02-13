@@ -11,6 +11,7 @@
     self = [super init];
     if (self != nil) {
         m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
+        m_PrevRootViewController = m_PrevWindow.rootViewController;
     }
     return self;
 }
@@ -39,9 +40,11 @@
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
     
-    UIWindow* window = [[UIWindow alloc] initWithFrame:screenBounds];
-    window.rootViewController = self;
-    window.hidden = YES;
+    //UIWindow* window = [[UIWindow alloc] initWithFrame:screenBounds];
+    //window.rootViewController = self;
+    //window.hidden = YES;
+
+    m_PrevWindow.rootViewController = self;
 
     int video = m_NumVideos;
     SDarwinVideoInfo& info = m_Videos[video];
@@ -51,7 +54,7 @@
     info.m_Height = height;
     info.m_Player = player;
     info.m_PlayerLayer = playerLayer;
-    info.m_Window = window;
+    //info.m_Window = window;
     info.m_VideoId = video;
     info.m_Callback = *cb;
 
@@ -74,8 +77,8 @@
     SDarwinVideoInfo& info = m_Videos[video];
     m_NumVideos = std::max(0, m_NumVideos - 1);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
-    [info.m_Window release];
-    info.m_Window = nil;
+    //[info.m_Window release];
+    //info.m_Window = nil;
     
     //[info.m_PlayerViewController release];
     [info.m_PlayerLayer removeFromSuperlayer];
@@ -86,7 +89,8 @@
     info.m_Player = nil;
     
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    [m_PrevWindow makeKeyAndVisible];
+    //[m_PrevWindow makeKeyAndVisible];
+    m_PrevWindow.rootViewController = m_PrevRootViewController;
 }
 
 -(bool) IsReady:(int)video {
@@ -96,7 +100,7 @@
 -(void) Start:(int)video {
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        info.m_Window.hidden = NO;
+        //info.m_Window.hidden = NO;
         //[self showViewController:info.m_PlayerViewController sender:self];
         [info.m_Player play];
     } else {
@@ -126,7 +130,7 @@
 -(void) Show:(int)video {
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        info.m_Window.hidden = NO;
+        //info.m_Window.hidden = NO;
     } else {
         dmLogError("No video to show!");
     }
@@ -135,7 +139,7 @@
 -(void) Hide:(int)video {
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        info.m_Window.hidden = YES;
+        //info.m_Window.hidden = YES;
     } else {
         dmLogError("No video to hide!");
     }

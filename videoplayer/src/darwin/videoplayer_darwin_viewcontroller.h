@@ -23,6 +23,7 @@ struct SDarwinVideoInfo {
         int                         m_NumVideos;
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
         UIWindow*                   m_PrevWindow;
+        UIViewController*           m_PrevRootViewController;
     }
     -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
     -(void) Destroy:(int)video;
