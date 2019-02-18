@@ -1,0 +1,80 @@
+local function log(msg)
+	print(msg)
+	gui.set_text(gui.get_node("label"), msg)
+end
+
+local function video_callback(self, video, event, data)
+	log(string.format("VIDEO CALLBACK: video %d evt: %d ", video, event))
+	pprint(data)
+
+	if event == videoplayer.VIDEO_EVENT_READY then
+		videoplayer.start(video)
+	elseif event == videoplayer.VIDEO_EVENT_FINISHED then
+		video_end(self, video)
+	end
+end
+
+function video_begin(self)
+	if videoplayer then
+		log("Loading...")
+
+		local videos = {"big_buck_bunny_720p_1mb.mp4"}
+
+		self.video = videoplayer.create(videos[math.random(#videos)], {}, video_callback)
+		log(self.video)
+	else
+		log("Could not initialize fullscreen videoplayer (on this platform?)")
+	end
+
+	if self.video == nil then
+		log("can't create another video");
+	end
+end
+
+function video_end(self, video)
+	log("Touch to start")
+	gui.animate(self.box_node, "color", self.color, gui.EASING_INOUTSINE, 0.5)
+	gui.set_enabled(self.label_node, true)
+	gui.set_enabled(self.logo_node, true)
+
+	if video ~= nil then
+		videoplayer.destroy(video)
+	end
+
+	self.video = nil;
+end
+
+local function window_callback(self, event, data)
+	if self.video == nil then
+		return
+	end
+
+	if event == window.WINDOW_EVENT_FOCUS_LOST then
+		videoplayer.pause(self.video)
+	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
+		videoplayer.start(self.video)
+	end
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.video = nil
+	self.tick = 1
+
+	self.box_node = gui.get_node("box")
+	self.label_node = gui.get_node("label")
+	self.logo_node = gui.get_node("logo")
+	self.color = gui.get_color(self.box_node)
+
+	window.set_listener(window_callback)
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		gui.set_enabled(self.label_node, false)
+		gui.set_enabled(self.logo_node, false)
+		gui.animate(self.box_node, "color", vmath.vector4(0, 0, 0, 1), gui.EASING_INOUTSINE, 0.5, 0, function()
+			video_begin(self)
+		end)
+	end
+end
