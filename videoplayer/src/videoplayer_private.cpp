@@ -91,6 +91,10 @@ void ProcessCommandQueue(int count, Command* commands)
             eventinfo.m_Height = cmd->m_Height;
             break;
 
+        case CMD_PREPARE_ERROR:
+            eventinfo.m_Event = VIDEO_EVENT_FAILED;
+            break;
+
 		case CMD_FINISHED:
             eventinfo.m_Event = VIDEO_EVENT_FINISHED;
 			break;

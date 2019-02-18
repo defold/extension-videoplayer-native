@@ -66,6 +66,7 @@
 
     // HAX TEST
     //m_SelectedVideoId = info.m_VideoId;
+    [self IsReady:info.m_VideoId];
         
     return video;
 }
@@ -95,7 +96,7 @@
 
 -(bool) IsReady:(int)video {
     dmLogInfo("IsReady video id: %d, m_SelectedVideoId: %d", video, m_SelectedVideoId);
-    return m_SelectedVideoId == video;
+    return (m_SelectedVideoId != -1) && (m_SelectedVideoId == video);
     /*
     if(m_SelectedVideoId != video) {
         return false;
@@ -179,8 +180,9 @@
     }
 
     dmLogInfo("HALLAUJA 2!");
+    [self IsReady:info->m_VideoId];
     
-    if (info->m_VideoId >= dmVideoPlayer::MAX_NUM_VIDEOS) {
+    if (info->m_VideoId < 0 || info->m_VideoId >= dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Invalid video id: %d", info->m_VideoId);
         invalidParams = true;
     } 
@@ -193,13 +195,16 @@
             if (player.status == AVPlayerStatusReadyToPlay) {
                 dmLogInfo("HALLAUJA 6!");
                 m_SelectedVideoId = info->m_VideoId;
+                dmLogInfo("HALLAUJA 7!");
                 dmVideoPlayer::Command cmd;
                 memset(&cmd, 0, sizeof(cmd));
+                dmLogInfo("HALLAUJA 8!");
                 cmd.m_Type          = dmVideoPlayer::CMD_PREPARE_OK;
                 cmd.m_ID            = info->m_VideoId;
                 cmd.m_Callback      = info->m_Callback;
                 cmd.m_Width         = (int)info->m_Width;
                 cmd.m_Height        = (int)info->m_Height;
+                dmLogInfo("HALLAUJA 9!");
                 CommandQueue::Queue(&cmd);
                 return;
             } else {
@@ -216,6 +221,8 @@
     cmd.m_Type          = dmVideoPlayer::CMD_PREPARE_ERROR;
     cmd.m_ID            = info->m_VideoId;
     cmd.m_Callback      = info->m_Callback;
+    cmd.m_Width         = (int)info->m_Width;
+    cmd.m_Height        = (int)info->m_Height;
     CommandQueue::Queue(&cmd);
 }
 
