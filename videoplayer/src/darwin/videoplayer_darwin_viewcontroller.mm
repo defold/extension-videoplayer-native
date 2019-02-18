@@ -12,8 +12,27 @@
     if (self != nil) {
         m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
         m_PrevRootViewController = m_PrevWindow.rootViewController;
+        m_IsSubLayerActive = false;
     }
     return self;
+}
+
+-(void) AddSubLayer:(AVPlayerLayer*)layer {
+    if(!m_IsSubLayerActive) {
+        [self.view.layer addSublayer:layer];
+        m_IsSubLayerActive = true;
+    } else {
+        dmLogError("Already have active sublayer - remove it first");
+    } 
+}
+
+-(void) RemoveSubLayer:(AVPlayerLayer*)layer {
+    if(m_IsSubLayerActive) {
+        [layer removeFromSuperlayer];
+        m_IsSubLayerActive = false;
+    } else {
+        dmLogError("No sublayer to remove");
+    }
 }
 
 -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb {
@@ -35,7 +54,7 @@
 
     AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
     playerLayer.frame = self.view.bounds;
-    [self.view.layer addSublayer:playerLayer];
+    [self AddSubLayer:playerLayer];
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
@@ -76,7 +95,7 @@
     m_NumVideos = std::max(0, m_NumVideos - 1);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
     
-    [info.m_PlayerLayer removeFromSuperlayer];
+    [self RemoveSubLayer:info.m_PlayerLayer];
     [info.m_PlayerLayer release];
     info.m_PlayerLayer = nil;
     
@@ -123,7 +142,7 @@
     dmLogInfo("Show!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        //info.m_Window.hidden = NO;
+        [self AddSubLayer:info.m_PlayerLayer];
     } else {
         dmLogError("No video to show!");
     }
@@ -133,7 +152,7 @@
     dmLogInfo("Hide!");
     if([self IsReady:video]) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        //info.m_Window.hidden = YES;
+        [self RemoveSubLayer:info.m_PlayerLayer];
     } else {
         dmLogError("No video to hide!");
     }

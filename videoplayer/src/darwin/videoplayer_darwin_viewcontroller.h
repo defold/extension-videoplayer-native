@@ -12,7 +12,7 @@ struct SDarwinVideoInfo {
     AVPlayerItem*               m_PlayerItem;
     AVPlayer*                   m_Player;
     AVPlayerLayer*              m_PlayerLayer;
-    
+
     float                       m_Width;
     float                       m_Height;
 };
@@ -23,6 +23,7 @@ struct SDarwinVideoInfo {
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
         UIWindow*                   m_PrevWindow;
         UIViewController*           m_PrevRootViewController;
+        bool                        m_IsSubLayerActive;
     }
     -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
     -(void) Destroy:(int)video;
