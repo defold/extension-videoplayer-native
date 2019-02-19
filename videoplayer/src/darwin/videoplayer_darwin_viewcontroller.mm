@@ -81,6 +81,16 @@
         name: AVPlayerItemDidPlayToEndTimeNotification
         object: [player currentItem]];
 
+    [[NSNotificationCenter defaultCenter] addObserver: self
+        selector: @selector(AppEnteredForeground)
+        name: UIApplicationWillEnterForegroundNotification
+        object: nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver: self
+        selector: @selector(AppEnteredBackground)
+        name:UIApplicationDidEnterBackgroundNotification
+        object: nil];
+
     m_NumVideos++;
     return video;
 }
@@ -217,6 +227,16 @@
     cmd.m_Width         = (int)info.m_Width;
     cmd.m_Height        = (int)info.m_Height;
     CommandQueue::Queue(&cmd);
+}
+
+- (void) AppEnteredForeground {
+    dmLogInfo("AppEnteredForeground!");
+    [self Start:m_SelectedVideoId];
+}
+
+-(void) AppEnteredBackground {
+    dmLogInfo("AppEnteredBackground!");
+    [self Pause:m_SelectedVideoId];
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
