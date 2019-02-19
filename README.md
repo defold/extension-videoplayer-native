@@ -1,7 +1,7 @@
 
 # extension-videoplayer-native
 
-This is a full-screen videoplayer extension for iOS, Android, OSX and Windows.
+This is a full-screen videoplayer extension for iOS and Android.
 
 # Usage
 
