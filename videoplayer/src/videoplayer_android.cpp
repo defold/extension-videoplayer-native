@@ -149,7 +149,9 @@ void dmVideoPlayer::Destroy(int video)
 {
     DBGFNLOG;
     // TODO: mutex lock!
-    dmVideoPlayer::ClearCommandQueueFromID(video, g_VideoContext.m_CmdQueue.Size(), &g_VideoContext.m_CmdQueue[0]);
+    if(g_VideoContext.m_CmdQueue.Size() > 0) {
+        dmVideoPlayer::ClearCommandQueueFromID(video, g_VideoContext.m_CmdQueue.Size(), &g_VideoContext.m_CmdQueue[0]);
+    }
 
     AttachScope scope;
     SAndroidVideoInfo& info = g_VideoContext.m_Videos[video];
@@ -217,9 +219,9 @@ dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params)
 
 dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params)
 {
-    for( int i = 0; i < dmVideoPlayer::MAX_NUM_VIDEOS; ++i)
+    while(g_VideoContext.m_NumVideos > 0)
     {
-        dmVideoPlayer::Destroy(i);
+        dmVideoPlayer::Destroy(0);
     }
     AttachScope scope;
     scope.env->DeleteGlobalRef(g_VideoContext.m_Class);
