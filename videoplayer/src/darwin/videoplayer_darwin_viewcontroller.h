@@ -23,7 +23,9 @@ struct SDarwinVideoInfo {
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
         UIWindow*                   m_PrevWindow;
         UIViewController*           m_PrevRootViewController;
+        CMTime                      m_PauseTime;
         bool                        m_IsSubLayerActive;
+        bool                        m_ResumeOnForeground;
     }
     -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
     -(void) Destroy:(int)video;
