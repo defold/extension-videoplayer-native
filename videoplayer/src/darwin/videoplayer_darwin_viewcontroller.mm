@@ -7,7 +7,7 @@
 
 @implementation VideoPlayerViewController
 
-static const int INALID_VIDEO_ID = -1;
+static const int INVALID_VIDEO_ID = -1;
 
 static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVideoInfo& info) {
     dmVideoPlayer::Command cmd;
@@ -23,7 +23,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 - (id)init {
     self = [super init];
     if (self != nil) {
-        m_SelectedVideoId = INALID_VIDEO_ID;
+        m_SelectedVideoId = INVALID_VIDEO_ID;
         m_NumVideos = 0;
         m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
         m_PrevRootViewController = m_PrevWindow.rootViewController;
@@ -54,7 +54,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb {
     if (m_NumVideos >= dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Videoplayer: Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
-        return INALID_VIDEO_ID;
+        return INVALID_VIDEO_ID;
     }
 
     float width = 0.0f, height = 0.0f;
@@ -63,7 +63,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
         dmLogInfo("Videoplayer: size: (%f x %f)", width, height);
     }
 
-    m_SelectedVideoId = INALID_VIDEO_ID;
+    m_SelectedVideoId = INVALID_VIDEO_ID;
     
     AVPlayerItem* playerItem = [AVPlayerItem playerItemWithAsset:asset];
     AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
@@ -147,11 +147,11 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     m_PrevWindow.rootViewController = m_PrevRootViewController;
 
-    m_SelectedVideoId = INALID_VIDEO_ID;
+    m_SelectedVideoId = INVALID_VIDEO_ID;
 }
 
 -(bool) IsReady:(int)video {
-    return (m_SelectedVideoId != INALID_VIDEO_ID) && (m_SelectedVideoId == video);
+    return (m_SelectedVideoId != INVALID_VIDEO_ID) && (m_SelectedVideoId == video);
 }
 
 -(void) Start:(int)video {
@@ -240,14 +240,14 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     dmLogInfo("Videoplayer: PlayerItemDidReachEnd! video id: %d", m_SelectedVideoId);
     
     SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-    m_SelectedVideoId = INALID_VIDEO_ID;
+    m_SelectedVideoId = INVALID_VIDEO_ID;
     m_ResumeOnForeground = false;
     QueueVideoCommand(dmVideoPlayer::CMD_FINISHED, info);
 }
 
 -(void) AppEnteredBackground {
     dmLogInfo("Videoplayer: AppEnteredBackground! video id: %d", m_SelectedVideoId);
-    if(m_SelectedVideoId != INALID_VIDEO_ID) {
+    if(m_SelectedVideoId != INVALID_VIDEO_ID) {
         dmLogInfo("Videoplayer: AppEnteredBackground: Pause video");
 
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
@@ -260,7 +260,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 
 - (void) AppEnteredForeground {
     dmLogInfo("Videoplayer: AppEnteredForeground! video id: %d", m_SelectedVideoId);
-    if((m_SelectedVideoId != INALID_VIDEO_ID) && m_ResumeOnForeground) {
+    if((m_SelectedVideoId != INVALID_VIDEO_ID) && m_ResumeOnForeground) {
         dmLogInfo("Videoplayer: AppEnteredForeground: Resume video");
 
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
@@ -278,7 +278,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 -(void) ResumeFromPauseTime {
     dmLogInfo("Videoplayer: ResumeFromPauseTime! video id: %d", m_SelectedVideoId);
 
-    if(m_SelectedVideoId != INALID_VIDEO_ID) {
+    if(m_SelectedVideoId != INVALID_VIDEO_ID) {
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         AVPlayer* player = info.m_Player;
         
