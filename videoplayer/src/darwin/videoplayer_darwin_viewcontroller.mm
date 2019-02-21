@@ -7,12 +7,28 @@
 
 @implementation VideoPlayerViewController
 
+static const int INALID_VIDEO_ID = -1;
+
+static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVideoInfo& info) {
+    dmVideoPlayer::Command cmd;
+    memset(&cmd, 0, sizeof(cmd));
+    cmd.m_Type          = commandType;
+    cmd.m_ID            = info.m_VideoId;
+    cmd.m_Callback      = info.m_Callback;
+    cmd.m_Width         = (int)info.m_Width;
+    cmd.m_Height        = (int)info.m_Height;
+    CommandQueue::Queue(&cmd);
+}
+
 - (id)init {
     self = [super init];
     if (self != nil) {
+        m_SelectedVideoId = INALID_VIDEO_ID;
+        m_NumVideos = 0;
         m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
         m_PrevRootViewController = m_PrevWindow.rootViewController;
         m_IsSubLayerActive = false;
+        m_ResumeOnForeground = false;
     }
     return self;
 }
@@ -22,7 +38,7 @@
         [self.view.layer addSublayer:layer];
         m_IsSubLayerActive = true;
     } else {
-        dmLogError("Already have active sublayer - remove it first");
+        dmLogError("Videoplayer: Already have active sublayer - remove it first");
     } 
 }
 
@@ -37,17 +53,17 @@
 
 -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb {
     if (m_NumVideos >= dmVideoPlayer::MAX_NUM_VIDEOS) {
-        dmLogError("Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
-        return -1;
+        dmLogError("Videoplayer: Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
+        return INALID_VIDEO_ID;
     }
 
     float width = 0.0f, height = 0.0f;
     AVURLAsset* asset = [AVURLAsset URLAssetWithURL:url options:nil];
     if(Helper::GetInfoFromAsset(asset, width, height)) {
-        dmLogInfo("Video size: (%f x %f)", width, height);
+        dmLogInfo("Videoplayer: size: (%f x %f)", width, height);
     }
 
-    m_SelectedVideoId = -1;
+    m_SelectedVideoId = INALID_VIDEO_ID;
     
     AVPlayerItem* playerItem = [AVPlayerItem playerItemWithAsset:asset];
     AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
@@ -57,7 +73,7 @@
     [self AddSubLayer:playerLayer];
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    dmLogInfo("screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
+    dmLogInfo("Videoplayer: screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
 
     m_PrevWindow.rootViewController = self;
 
@@ -82,13 +98,13 @@
         object: [player currentItem]];
 
     [[NSNotificationCenter defaultCenter] addObserver: self
-        selector: @selector(AppEnteredForeground)
-        name: UIApplicationWillEnterForegroundNotification
+        selector: @selector(AppEnteredBackground)
+        name:UIApplicationDidEnterBackgroundNotification
         object: nil];
 
     [[NSNotificationCenter defaultCenter] addObserver: self
-        selector: @selector(AppEnteredBackground)
-        name:UIApplicationDidEnterBackgroundNotification
+        selector: @selector(AppEnteredForeground)
+        name: UIApplicationWillEnterForegroundNotification
         object: nil];
 
     m_NumVideos++;
@@ -96,8 +112,15 @@
 }
 
 -(void) Destroy:(int)video {
+    dmLogInfo("Videoplayer: Destroy video id: %d", video);
+    
     if (m_NumVideos > dmVideoPlayer::MAX_NUM_VIDEOS) {
-        dmLogError("Invalid video id: %d", video);
+        dmLogError("Videoplayer: Invalid num videos: %d", m_NumVideos);
+        return;
+    }
+    
+    if (video >= m_NumVideos) {
+        dmLogError("Videoplayer: Invalid video id: %d", video);
         return;
     }
     
@@ -106,65 +129,79 @@
     [[NSNotificationCenter defaultCenter] removeObserver: self];
     
     [self RemoveSubLayer:info.m_PlayerLayer];
+
+    [info.m_PlayerLayer setPlayer:nil];
     [info.m_PlayerLayer release];
     info.m_PlayerLayer = nil;
-    
+
+    [info.m_Player replaceCurrentItemWithPlayerItem: nil];
     [info.m_Player release];
     info.m_Player = nil;
-    
+
+    [info.m_PlayerItem release];
+    info.m_PlayerItem = nil;
+
+    [info.m_Asset release];
+    info.m_Asset = nil;
+
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     m_PrevWindow.rootViewController = m_PrevRootViewController;
+
+    m_SelectedVideoId = INALID_VIDEO_ID;
 }
 
 -(bool) IsReady:(int)video {
-    return (m_SelectedVideoId != -1) && (m_SelectedVideoId == video);
+    return (m_SelectedVideoId != INALID_VIDEO_ID) && (m_SelectedVideoId == video);
 }
 
 -(void) Start:(int)video {
+    dmLogInfo("Videoplayer: Start");
     if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        SDarwinVideoInfo& info = m_Videos[video];
         [info.m_Player play];
     } else {
-        dmLogError("No video to start!");
+        dmLogError("Videoplayer: No video to start!");
     }
 }
 
 -(void) Stop:(int)video {
+    dmLogInfo("Videoplayer: Stop");
     if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        SDarwinVideoInfo& info = m_Videos[video];
         [info.m_Player seekToTime:CMTimeMake(0, 1)];
         [info.m_Player pause];
     } else {
-        dmLogError("No video to stop!");
+        dmLogError("Videoplayer: No video to stop!");
     }
 }
 
 -(void) Pause:(int)video {
+    dmLogInfo("Videoplayer: Pause");
     if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        SDarwinVideoInfo& info = m_Videos[video];
         [info.m_Player pause];
     } else {
-        dmLogError("No video to pause!");
+        dmLogError("Videoplayer: No video to pause!");
     }
 }
 
 -(void) Show:(int)video {
-    dmLogInfo("Show!");
+    dmLogInfo("Videoplayer: Show");
     if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        SDarwinVideoInfo& info = m_Videos[video];
         [self AddSubLayer:info.m_PlayerLayer];
     } else {
-        dmLogError("No video to show!");
+        dmLogError("Videoplayer: No video to show!");
     }
 }
 
 -(void) Hide:(int)video {
-    dmLogInfo("Hide!");
+    dmLogInfo("Videoplayer: Hide");
     if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        SDarwinVideoInfo& info = m_Videos[video];
         [self RemoveSubLayer:info.m_PlayerLayer];
     } else {
-        dmLogError("No video to hide!");
+        dmLogError("Videoplayer: No video to hide!");
     }
 }
 
@@ -176,67 +213,85 @@
     bool invalidParams = false;
     SDarwinVideoInfo* info = (SDarwinVideoInfo*)context;
     if(info == NULL) {
-        dmLogError("Video info missing!");
-        invalidParams = true;
+        dmLogError("Videoplayer: Video info missing!");
+        QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
+        return;
     }
     
     if (info->m_VideoId < 0 || info->m_VideoId >= dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Invalid video id: %d", info->m_VideoId);
-        invalidParams = true;
+        QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
+        return;
     } 
 
-    if(!invalidParams) {
-        AVPlayer* player = info->m_Player;
-        if (object == player && [keyPath isEqualToString:@"status"]) {
-            if (player.status == AVPlayerStatusReadyToPlay) {
-                m_SelectedVideoId = info->m_VideoId;
-                dmVideoPlayer::Command cmd;
-                memset(&cmd, 0, sizeof(cmd));
-                cmd.m_Type          = dmVideoPlayer::CMD_PREPARE_OK;
-                cmd.m_ID            = info->m_VideoId;
-                cmd.m_Callback      = info->m_Callback;
-                cmd.m_Width         = (int)info->m_Width;
-                cmd.m_Height        = (int)info->m_Height;
-                CommandQueue::Queue(&cmd);
-                return;
-            } else {
-                dmLogError("Video %d not ready to play yet!", info->m_VideoId);
-            }
+    AVPlayer* player = info->m_Player;
+    if (object == player && [keyPath isEqualToString:@"status"]) {
+        if (player.status == AVPlayerStatusReadyToPlay) {
+            m_SelectedVideoId = info->m_VideoId;
+            QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_OK, *info);
+            return;
+        } else {
+            dmLogError("Videoplayer: Video %d not ready to play yet!", info->m_VideoId);
         }
     }
-
-    // Error!
-    dmVideoPlayer::Command cmd;
-    memset(&cmd, 0, sizeof(cmd));
-    cmd.m_Type          = dmVideoPlayer::CMD_PREPARE_ERROR;
-    cmd.m_ID            = info->m_VideoId;
-    cmd.m_Callback      = info->m_Callback;
-    cmd.m_Width         = (int)info->m_Width;
-    cmd.m_Height        = (int)info->m_Height;
-    CommandQueue::Queue(&cmd);
 }
 
 - (void)PlayerItemDidReachEnd:(NSNotification *)notification { 
+    dmLogInfo("Videoplayer: PlayerItemDidReachEnd! video id: %d", m_SelectedVideoId);
+    
     SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-    m_SelectedVideoId = -1;
-    dmVideoPlayer::Command cmd;
-    memset(&cmd, 0, sizeof(cmd));
-    cmd.m_Type          = dmVideoPlayer::CMD_FINISHED;
-    cmd.m_ID            = info.m_VideoId;
-    cmd.m_Callback      = info.m_Callback;
-    cmd.m_Width         = (int)info.m_Width;
-    cmd.m_Height        = (int)info.m_Height;
-    CommandQueue::Queue(&cmd);
-}
-
-- (void) AppEnteredForeground {
-    dmLogInfo("AppEnteredForeground!");
-    [self Start:m_SelectedVideoId];
+    m_SelectedVideoId = INALID_VIDEO_ID;
+    m_ResumeOnForeground = false;
+    QueueVideoCommand(dmVideoPlayer::CMD_FINISHED, info);
 }
 
 -(void) AppEnteredBackground {
-    dmLogInfo("AppEnteredBackground!");
-    [self Pause:m_SelectedVideoId];
+    dmLogInfo("Videoplayer: AppEnteredBackground! video id: %d", m_SelectedVideoId);
+    if(m_SelectedVideoId != INALID_VIDEO_ID) {
+        dmLogInfo("Videoplayer: AppEnteredBackground: Pause video");
+
+        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        
+        [info.m_Player pause];
+        m_PauseTime = [info.m_Player currentTime];
+        m_ResumeOnForeground = true;
+    }
+}
+
+- (void) AppEnteredForeground {
+    dmLogInfo("Videoplayer: AppEnteredForeground! video id: %d", m_SelectedVideoId);
+    if((m_SelectedVideoId != INALID_VIDEO_ID) && m_ResumeOnForeground) {
+        dmLogInfo("Videoplayer: AppEnteredForeground: Resume video");
+
+        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+
+        [info.m_PlayerLayer setPlayer:nil];
+        [info.m_Player replaceCurrentItemWithPlayerItem: nil];
+        [info.m_Player replaceCurrentItemWithPlayerItem: info.m_PlayerItem];
+        [info.m_PlayerLayer setPlayer:info.m_Player];
+        
+        [self ResumeFromPauseTime];
+        m_ResumeOnForeground = false;
+    }
+}
+
+-(void) ResumeFromPauseTime {
+    dmLogInfo("Videoplayer: ResumeFromPauseTime! video id: %d", m_SelectedVideoId);
+
+    if(m_SelectedVideoId != INALID_VIDEO_ID) {
+        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
+        AVPlayer* player = info.m_Player;
+        
+        if(player.status == AVPlayerStatusReadyToPlay && player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
+            [player seekToTime:m_PauseTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:^(BOOL finished) {
+                [player play];
+            }];
+        } else {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self ResumeFromPauseTime];
+            });
+        }
+    }
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
