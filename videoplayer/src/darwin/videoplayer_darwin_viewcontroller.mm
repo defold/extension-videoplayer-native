@@ -282,11 +282,12 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
         SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
         AVPlayer* player = info.m_Player;
         
-        if(player.status == AVPlayerStatusReadyToPlay && player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
-            [player seekToTime:m_PauseTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:^(BOOL finished) {
-                [player play];
-            }];
+        if(player.status == AVPlayerStatusReadyToPlay) {
+            dmLogInfo("Videoplayer: seek and play. video id: %d", m_SelectedVideoId);
+            [player seekToTime:m_PauseTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+            [player play];
         } else {
+            dmLogInfo("Videoplayer: player not ready, waiting. video id: %d", m_SelectedVideoId);
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [self ResumeFromPauseTime];
             });
