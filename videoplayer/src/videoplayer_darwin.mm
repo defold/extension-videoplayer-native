@@ -19,7 +19,9 @@ void dmVideoPlayer::Destroy(int video) {
     if(g_ViewController != NULL) {
         [g_ViewController Destroy:video];
     }
-    dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
+    if(!CommandQueue::IsEmpty()) {
+        dmVideoPlayer::ClearCommandQueueFromID(video, CommandQueue::GetCount(), CommandQueue::GetCommands());
+    }
 }
 
 void dmVideoPlayer::Show(int video) {
@@ -79,13 +81,9 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
     }
     CommandQueue::Clear();
 
-    if(g_ViewController != NULL) {
-        [g_ViewController release];
-        g_ViewController = NULL;
-    }
+    g_ViewController = NULL;
     
     dmExtension::UnregisteriOSUIApplicationDelegate(g_AppDelegate);
-    [g_AppDelegate release];
     g_AppDelegate = NULL;
     return dmExtension::RESULT_OK;
 }

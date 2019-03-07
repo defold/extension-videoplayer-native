@@ -127,21 +127,16 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     SDarwinVideoInfo& info = m_Videos[video];
     m_NumVideos = std::max(0, m_NumVideos - 1);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [info.m_Player removeObserver:self forKeyPath:@"status"];
     
     [self RemoveSubLayer:info.m_PlayerLayer];
 
     [info.m_PlayerLayer setPlayer:nil];
-    [info.m_PlayerLayer release];
     info.m_PlayerLayer = nil;
 
     [info.m_Player replaceCurrentItemWithPlayerItem: nil];
-    [info.m_Player release];
     info.m_Player = nil;
-
-    [info.m_PlayerItem release];
     info.m_PlayerItem = nil;
-
-    [info.m_Asset release];
     info.m_Asset = nil;
 
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
