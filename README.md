@@ -1,7 +1,7 @@
 
 # extension-videoplayer-native
 
-This is a full-screen videoplayer extension for iOS and Android.
+This is a full-screen videoplayer extension for iOS and Android using native OS functionality and components for videoplayback.
 
 # Usage
 
@@ -9,7 +9,6 @@ Add the package link (https://github.com/defold/extension-videoplayer-native/arc
 to the project setting `project.dependencies`, and you should be good to go.
 
 See the [manual](http://www.defold.com/manuals/libraries/) for further info.
-
 
 # Lua API
 
