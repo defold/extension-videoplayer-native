@@ -7,9 +7,9 @@ class VideoplayerExtension {
 	public static final String TAG = "defold-videoplayer";
 
 
-	public static Movie Create(final Context context, String uri, int id) {
+	public static Movie Create(final Context context, String uri, int id, boolean playSound) {
 		Logger.log("VideoplayerExtension: Creating video");
-		return new Movie(context, uri, id);
+		return new Movie(context, uri, id, playSound);
 	}
 	public static void Destroy(Movie movie) {
 		Logger.log("VideoplayerExtension: Destroy video");

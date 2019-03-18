@@ -19,15 +19,30 @@ static int Create(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 1);
 
-    // Parse settings from argument #2
+	bool playSound = true;
+	if(lua_istable(L, 2)){
+		lua_getfield(L, 2, "play_sound");
+		if(lua_isboolean(L, -1)){
+			playSound = lua_toboolean(L, -1);
+		}else if(!lua_isnil(L, -1)){
+			return luaL_error(L, "%s.Create() Expected type of 'play_sound' to be boolean!", MODULE_NAME);
+		}
+		lua_pop(L, 1);
+	}else if(!lua_isnil(L, 2)){
+		return luaL_error(L, "%s.Create() #2 argument only supports table: %s", MODULE_NAME, lua_tostring(L, 1));
+	}
 
     dmVideoPlayer::LuaCallback cb;
     dmVideoPlayer::RegisterCallback(L, 3, &cb);
 
+	dmVideoPlayer::VideoPlayerCreateInfo createInfo;
+	createInfo.m_Callback = &cb;
+	createInfo.m_PlaySound = playSound;
+
     int video = 0;
     if (lua_isstring(L, 1) ) {
         const char* uri = luaL_checkstring(L, 1);
-        video = dmVideoPlayer::CreateWithUri(uri, &cb);
+        video = dmVideoPlayer::CreateWithUri(uri, createInfo);
     }
     // else if() {
     //     dmScript::LuaHBuffer buffer = dmScript::CheckBuffer(L, 1);
@@ -35,10 +50,10 @@ static int Create(lua_State* L)
     //     //video = dmVideoPlayer::CreateWithBuffer(*buffer, dmVideoPlayer::EventCallback, (void*)video);
     // }
     else {
-        return luaL_error(L, "%s.create only supports strings or buffers: %s", MODULE_NAME, lua_tostring(L, 1));
+        return luaL_error(L, "%s.Create() #1 argument only supports strings: %s", MODULE_NAME, lua_tostring(L, 1));
     }
 
-dmLogWarning("Video created: %d", video);
+	dmLogWarning("Video created: %d", video);
 
     if (video >= 0) {
         lua_pushnumber(L, video);

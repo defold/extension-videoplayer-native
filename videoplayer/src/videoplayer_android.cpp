@@ -117,7 +117,7 @@ extern "C" {
 #endif
 
 
-int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb)
+int dmVideoPlayer::CreateWithUri(const char* uri, VideoPlayerCreateInfo createInfo)
 {
     DBGFNLOG;
 
@@ -131,7 +131,7 @@ int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb
 
     AttachScope scope;
     jstring juri = scope.env->NewStringUTF(uri);
-    jobject jvideo = scope.env->CallStaticObjectMethod(g_VideoContext.m_Class, g_VideoContext.m_CreateFn, dmGraphics::GetNativeAndroidActivity(), juri, id);
+    jobject jvideo = scope.env->CallStaticObjectMethod(g_VideoContext.m_Class, g_VideoContext.m_CreateFn, dmGraphics::GetNativeAndroidActivity(), juri, id, createInfo.m_PlaySound?JNI_TRUE:JNI_FALSE);
     jvideo = (jobject)scope.env->NewGlobalRef(jvideo);
     scope.env->DeleteLocalRef(juri);
     if (jvideo)
@@ -139,7 +139,7 @@ int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb
         ++g_VideoContext.m_NumVideos;
         SAndroidVideoInfo& info = g_VideoContext.m_Videos[id];
         info.m_Video = jvideo;
-        info.m_Callback = *cb;
+        info.m_Callback = *createInfo.m_Callback;
         return id;
     }
     return -1;
@@ -205,7 +205,7 @@ dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params)
     g_VideoContext.m_Class       = (jclass)env->NewGlobalRef(cls);
 
     // TODO: Skip the VideoPlayer class altogether, and create/invoke the Movie class directly
-    g_VideoContext.m_CreateFn    = env->GetStaticMethodID(cls, "Create", "(Landroid/content/Context;Ljava/lang/String;I)" MOVIE_JAVA_CLASS_NAME);
+    g_VideoContext.m_CreateFn    = env->GetStaticMethodID(cls, "Create", "(Landroid/content/Context;Ljava/lang/String;IZ)" MOVIE_JAVA_CLASS_NAME);
     g_VideoContext.m_DestroyFn   = env->GetStaticMethodID(cls, "Destroy", "(" MOVIE_JAVA_CLASS_NAME ")V");
     g_VideoContext.m_SetVisibleFn= env->GetStaticMethodID(cls, "SetVisible", "(" MOVIE_JAVA_CLASS_NAME "I)V");
     g_VideoContext.m_StartFn     = env->GetStaticMethodID(cls, "Start", "(" MOVIE_JAVA_CLASS_NAME ")V");
