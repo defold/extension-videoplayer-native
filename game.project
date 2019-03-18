@@ -28,7 +28,7 @@ launch_image_750x1334 = /res/ios/splash_iphone6s.png
 [android]
 package = com.defoldexample.videoplayer
 debuggable = 1
-immersive_mode = 0
+immersive_mode = 1
 
 [osx]
 bundle_identifier = com.defoldexample.videoplayer
