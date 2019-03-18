@@ -27,7 +27,7 @@ struct SDarwinVideoInfo {
         bool                        m_IsSubLayerActive;
         bool                        m_ResumeOnForeground;
     }
-    -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb;
+    -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb playSound:(bool)playSound;
     -(void) Destroy:(int)video;
     -(bool) IsReady:(int)video;
     -(void) Start:(int)video;

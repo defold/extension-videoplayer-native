@@ -58,7 +58,13 @@ dmExtension::Result Init(dmExtension::Params* params);
 dmExtension::Result Exit(dmExtension::Params* params);
 dmExtension::Result Update(dmExtension::Params* params);
 
-int CreateWithUri(const char* uri, LuaCallback* cb);
+struct VideoPlayerCreateInfo
+{
+	LuaCallback* m_Callback;
+	bool m_PlaySound;
+};
+
+int CreateWithUri(const char* uri, const VideoPlayerCreateInfo& createInfo);
 //int CreateWithBuffer(dmBuffer::HBuffer buffer, void* video);
 void Destroy(int video);
 void Show(int video);

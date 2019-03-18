@@ -28,6 +28,7 @@ class Movie implements
 
 	private int id;
 	private String uri;
+	private boolean playSound;
 
 	private Activity activity;
 
@@ -44,10 +45,11 @@ class Movie implements
 	private native void videoIsReady(int id, int width, int height);
 	private native void videoIsFinished(int id);
 
-	public Movie(final Context context, String _uri, int _id){
+	public Movie(final Context context, String _uri, int _id, boolean _playSound){
 		Logger.log("Movie: Movie()");
 		uri = _uri;
 		id = _id;
+		playSound = _playSound;
 
 		destroyed = false;
 
@@ -71,6 +73,11 @@ class Movie implements
 		mediaPlayer.setScreenOnWhilePlaying(true);
 		mediaPlayer.setOnPreparedListener(this);
 		mediaPlayer.setOnCompletionListener(this);
+		if(playSound){
+			mediaPlayer.setVolume(1.0f, 1.0f);
+		}else{
+			mediaPlayer.setVolume(0.0f, 0.0f);
+		}
 
 		Logger.log("Movie: new VideoView");
 		videoView = new VideoView((Context)activity);

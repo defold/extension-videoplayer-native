@@ -51,7 +51,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     }
 }
 
--(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb {
+-(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb playSound:(bool)playSound{
     if (m_NumVideos >= dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Videoplayer: Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
         return INVALID_VIDEO_ID;
@@ -67,6 +67,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     
     AVPlayerItem* playerItem = [AVPlayerItem playerItemWithAsset:asset];
     AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
+    player.muted = !playSound;
 
     AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
     playerLayer.frame = self.view.bounds;
