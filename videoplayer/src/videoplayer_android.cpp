@@ -117,7 +117,7 @@ extern "C" {
 #endif
 
 
-int dmVideoPlayer::CreateWithUri(const char* uri, VideoPlayerCreateInfo createInfo)
+int dmVideoPlayer::CreateWithUri(const char* uri, const VideoPlayerCreateInfo& createInfo)
 {
     DBGFNLOG;
 

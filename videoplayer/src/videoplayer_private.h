@@ -64,7 +64,7 @@ struct VideoPlayerCreateInfo
 	bool m_PlaySound;
 };
 
-int CreateWithUri(const char* uri, VideoPlayerCreateInfo createInfo);
+int CreateWithUri(const char* uri, const VideoPlayerCreateInfo& createInfo);
 //int CreateWithBuffer(dmBuffer::HBuffer buffer, void* video);
 void Destroy(int video);
 void Show(int video);

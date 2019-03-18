@@ -10,9 +10,9 @@ VideoPlayerViewController* g_ViewController   = NULL;
 
 // ----------------------------------------------------------------------------
 
-int dmVideoPlayer::CreateWithUri(const char* uri, dmVideoPlayer::LuaCallback* cb) {
+int dmVideoPlayer::CreateWithUri(const char* uri, const VideoPlayerCreateInfo& createInfo) {
     NSURL* url = Helper::GetUrlFromURI(uri);    
-    return [g_ViewController Create:url callback:cb];
+    return [g_ViewController Create:url callback:createInfo.m_Callback playSound:createInfo.m_PlaySound];
 }
 
 void dmVideoPlayer::Destroy(int video) {
