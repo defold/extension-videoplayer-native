@@ -1,7 +1,7 @@
 
 # extension-videoplayer-native
 
-This is a full-screen videoplayer extension for iOS and Android using native OS functionality and components for videoplayback.
+This is a fullscreen videoplayer extension for **iOS** and **Android** using native OS functionality and components for videoplayback.
 
 # Usage
 
@@ -14,15 +14,14 @@ See the [manual](http://www.defold.com/manuals/libraries/) for further info.
 
 ## videoplayer.create(uri, settings, callback)
 
-Opens a video from either a buffer or a link, and returns a handle to the videoplayer.
+Opens a video from either a uri, and returns a handle to the videoplayer.
     
 ```lua
 function videoplayer_callback(self, video, event, data={})
     ...
 end
 
-local videoresource = resource.load("/assets/big_buck_bunny_720p_1mb.mp4")
-self.handle = videoplayer.create(uri, {}, videoplayer_callback)
+self.handle = videoplayer.create("/assets/big_buck_bunny_720p_1mb.mp4", {play_sound = true}, videoplayer_callback)
 ```
 
 ## videoplayer.destroy(handle)
@@ -68,7 +67,20 @@ end
 function init(self)
     window.set_listener(window_callback)
     if videoplayer then
-        self.handle = videoplayer.create("video.mp4", {}, video_callback)
+        self.handle = videoplayer.create("video.mp4", {play_sound = true}, video_callback)
     end
 end
 ```
+
+
+# Limitations
+
+## Android
+
+The android implementation uses the [MediaPlayer](https://developer.android.com/reference/android/media/MediaPlayer) in combination with a [SurfaceView](https://developer.android.com/reference/android/view/SurfaceView) to display the video.
+
+Here's a list of [Supported Video Formats](https://developer.android.com/guide/topics/media/media-formats)
+
+
+# iOS
+TODO
