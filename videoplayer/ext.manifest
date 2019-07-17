@@ -4,7 +4,7 @@ platforms:
   x86_64-osx:
     context:
         frameworks: ["AVFoundation", "AVKit", "CoreMedia"]
-        
+
   x86-osx:
     context:
         frameworks: ["AVFoundation", "AVKit", "CoreMedia"]
@@ -14,5 +14,9 @@ platforms:
         frameworks: ["AVFoundation", "AVKit", "CoreMedia", "UIKit"]
 
   armv7-ios:
+    context:
+        frameworks: ["AVFoundation", "AVKit", "CoreMedia", "UIKit"]
+
+  x86_64-ios:
     context:
         frameworks: ["AVFoundation", "AVKit", "CoreMedia", "UIKit"]
