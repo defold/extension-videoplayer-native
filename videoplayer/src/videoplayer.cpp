@@ -1,10 +1,6 @@
 #define LIB_NAME "VideoPlayer"
 #define MODULE_NAME "videoplayer"
 
-#if !defined(DLIB_LOG_DOMAIN)
-#define DLIB_LOG_DOMAIN "VIDEOPLAYER"
-#endif
-
 // Defold SDK
 #include <dmsdk/sdk.h>
 
