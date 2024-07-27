@@ -34,7 +34,7 @@ Destroys the video
 Shows or hides the video player view
 
 
-## videoplayer.play(handle) / videoplayer.stop(handle) / videoplayer.pause(handle)
+## videoplayer.start(handle) / videoplayer.stop(handle) / videoplayer.pause(handle)
 
 
 # Example
