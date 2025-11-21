@@ -20,6 +20,7 @@ struct SDarwinVideoInfo {
 #if defined(DM_PLATFORM_IOS)
 #import <UIKit/UIKit.h>
 @interface VideoPlayerViewController : UIViewController {
+    @public
         int                         m_SelectedVideoId;
         int                         m_NumVideos;
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
@@ -37,10 +38,13 @@ struct SDarwinVideoInfo {
     -(void) Pause:(int)video;
     -(void) Show:(int)video;
     -(void) Hide:(int)video;
+    -(void) AddSubLayer:(AVPlayerLayer*)layer;
+    -(void) RemoveSubLayer:(AVPlayerLayer*)layer;
 @end
 #elif defined(DM_PLATFORM_OSX)
 #import <Cocoa/Cocoa.h>
 @interface VideoPlayerViewController : NSViewController {
+    @public
         int                         m_SelectedVideoId;
         int                         m_NumVideos;
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
@@ -58,6 +62,9 @@ struct SDarwinVideoInfo {
     -(void) Pause:(int)video;
     -(void) Show:(int)video;
     -(void) Hide:(int)video;
+    -(void) AddSubLayer:(AVPlayerLayer*)layer;
+    -(void) RemoveSubLayer:(AVPlayerLayer*)layer;
+    -(NSView*) TargetView;
 @end
 #endif
 

@@ -1,23 +1,7 @@
 #if defined(DM_PLATFORM_OSX)
-#include "videoplayer_darwin_viewcontroller.h"
-#include "videoplayer_darwin_command_queue.h"
+#include "videoplayer_darwin.h"
 #include "videoplayer_darwin_helper.h"
-#include <dmsdk/sdk.h>
 #include <QuartzCore/QuartzCore.h>
-#include <algorithm>
-
-static const int INVALID_VIDEO_ID = -1;
-
-static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVideoInfo& info) {
-    dmVideoPlayer::Command cmd;
-    memset(&cmd, 0, sizeof(cmd));
-    cmd.m_Type          = commandType;
-    cmd.m_ID            = info.m_VideoId;
-    cmd.m_Callback      = info.m_Callback;
-    cmd.m_Width         = (int)info.m_Width;
-    cmd.m_Height        = (int)info.m_Height;
-    CommandQueue::Queue(&cmd);
-}
 
 @implementation VideoPlayerViewController
 
@@ -153,91 +137,31 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 }
 
 -(void) Destroy:(int)video {
-    dmLogInfo("Videoplayer: Destroy video id: %d", video);
-    
-    if (m_NumVideos > dmVideoPlayer::MAX_NUM_VIDEOS) {
-        dmLogError("Videoplayer: Invalid num videos: %d", m_NumVideos);
-        return;
-    }
-    
-    if (video >= m_NumVideos) {
-        dmLogError("Videoplayer: Invalid video id: %d", video);
-        return;
-    }
-    
-    SDarwinVideoInfo& info = m_Videos[video];
-    m_NumVideos = std::max(0, m_NumVideos - 1);
-    [[NSNotificationCenter defaultCenter] removeObserver: self];
-    [info.m_Player removeObserver:self forKeyPath:@"status"];
-    [info.m_PlayerItem removeObserver:self forKeyPath:@"status"];
-    
-    [self RemoveSubLayer:info.m_PlayerLayer];
-
-    [info.m_PlayerLayer setPlayer:nil];
-    info.m_PlayerLayer = nil;
-
-    [info.m_Player replaceCurrentItemWithPlayerItem: nil];
-    info.m_Player = nil;
-    info.m_PlayerItem = nil;
-    info.m_Asset = nil;
-
-    dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    m_SelectedVideoId = INVALID_VIDEO_ID;
+    VideoPlayerDestroy(self, video);
 }
 
 -(bool) IsReady:(int)video {
-    return (m_SelectedVideoId != INVALID_VIDEO_ID) && (m_SelectedVideoId == video);
+    return VideoPlayerIsReady(self, video);
 }
 
 -(void) Start:(int)video {
-    dmLogInfo("Videoplayer: Start");
-    if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[video];
-        [info.m_Player play];
-    } else {
-        dmLogError("Videoplayer: No video to start!");
-    }
+    VideoPlayerStart(self, video);
 }
 
 -(void) Stop:(int)video {
-    dmLogInfo("Videoplayer: Stop");
-    if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[video];
-        [info.m_Player seekToTime:CMTimeMake(0, 1)];
-        [info.m_Player pause];
-    } else {
-        dmLogError("Videoplayer: No video to stop!");
-    }
+    VideoPlayerStop(self, video);
 }
 
 -(void) Pause:(int)video {
-    dmLogInfo("Videoplayer: Pause");
-    if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[video];
-        [info.m_Player pause];
-    } else {
-        dmLogError("Videoplayer: No video to pause!");
-    }
+    VideoPlayerPause(self, video);
 }
 
 -(void) Show:(int)video {
-    dmLogInfo("Videoplayer: Show");
-    if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[video];
-        [self AddSubLayer:info.m_PlayerLayer];
-    } else {
-        dmLogError("Videoplayer: No video to show!");
-    }
+    VideoPlayerShow(self, video);
 }
 
 -(void) Hide:(int)video {
-    dmLogInfo("Videoplayer: Hide");
-    if([self IsReady:video]) {
-        SDarwinVideoInfo& info = m_Videos[video];
-        [self RemoveSubLayer:info.m_PlayerLayer];
-    } else {
-        dmLogError("Videoplayer: No video to hide!");
-    }
+    VideoPlayerHide(self, video);
 }
 
 // ----------------------------------------------------------------------------
@@ -245,96 +169,23 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 // ----------------------------------------------------------------------------
 
 -(void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
-    SDarwinVideoInfo* info = (SDarwinVideoInfo*)context;
-    if(info == NULL) {
-        dmLogError("Videoplayer: Video info missing!");
-        return;
-    }
-    
-    if (info->m_VideoId < 0 || info->m_VideoId >= dmVideoPlayer::MAX_NUM_VIDEOS) {
-        dmLogError("Invalid video id: %d", info->m_VideoId);
-        QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
-        return;
-    } 
-
-    AVPlayer* player = info->m_Player;
-    AVPlayerItem* item = info->m_PlayerItem;
-    if ((object == player || object == item) && [keyPath isEqualToString:@"status"]) {
-        AVPlayerStatus status = player.status;
-        if (item) {
-            status = item.status;
-        }
-        if (status == AVPlayerStatusReadyToPlay) {
-            m_SelectedVideoId = info->m_VideoId;
-            QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_OK, *info);
-            return;
-        } else if (status == AVPlayerStatusFailed) {
-            dmLogError("Videoplayer: Video %d failed to prepare", info->m_VideoId);
-            QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
-            return;
-        } else {
-            dmLogInfo("Videoplayer: Video %d still preparing", info->m_VideoId);
-        }
-    }
+    VideoPlayerObserveValueForKeyPath(self, keyPath, object, change, context);
 }
 
 - (void)PlayerItemDidReachEnd:(NSNotification *)notification { 
-    dmLogInfo("Videoplayer: PlayerItemDidReachEnd! video id: %d", m_SelectedVideoId);
-    
-    SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-    m_SelectedVideoId = INVALID_VIDEO_ID;
-    m_ResumeOnForeground = false;
-    QueueVideoCommand(dmVideoPlayer::CMD_FINISHED, info);
+    VideoPlayerDidReachEnd(self);
 }
 
 -(void) AppEnteredBackground {
-    dmLogInfo("Videoplayer: AppEnteredBackground! video id: %d", m_SelectedVideoId);
-    if(m_SelectedVideoId != INVALID_VIDEO_ID) {
-        dmLogInfo("Videoplayer: AppEnteredBackground: Pause video");
-
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        
-        [info.m_Player pause];
-        m_PauseTime = [info.m_Player currentTime];
-        m_ResumeOnForeground = true;
-    }
+    VideoPlayerAppEnteredBackground(self);
 }
 
 - (void) AppEnteredForeground {
-    dmLogInfo("Videoplayer: AppEnteredForeground! video id: %d", m_SelectedVideoId);
-    if((m_SelectedVideoId != INVALID_VIDEO_ID) && m_ResumeOnForeground) {
-        dmLogInfo("Videoplayer: AppEnteredForeground: Resume video");
-
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-
-        [info.m_PlayerLayer setPlayer:nil];
-        [info.m_Player replaceCurrentItemWithPlayerItem: nil];
-        [info.m_Player replaceCurrentItemWithPlayerItem: info.m_PlayerItem];
-        [info.m_PlayerLayer setPlayer:info.m_Player];
-        
-        [self ResumeFromPauseTime];
-        m_ResumeOnForeground = false;
-    }
+    VideoPlayerAppEnteredForeground(self);
 }
 
 -(void) ResumeFromPauseTime {
-    dmLogInfo("Videoplayer: ResumeFromPauseTime! video id: %d", m_SelectedVideoId);
-
-    if(m_SelectedVideoId != INVALID_VIDEO_ID) {
-        SDarwinVideoInfo& info = m_Videos[m_SelectedVideoId];
-        AVPlayer* player = info.m_Player;
-        
-        if(player.status == AVPlayerStatusReadyToPlay) {
-            dmLogInfo("Videoplayer: seek and play. video id: %d", m_SelectedVideoId);
-            [player seekToTime:m_PauseTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
-            [player play];
-        } else {
-            dmLogInfo("Videoplayer: player not ready, waiting. video id: %d", m_SelectedVideoId);
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self ResumeFromPauseTime];
-            });
-        }
-    }
+    VideoPlayerResumeFromPauseTime(self);
 }
 
 @end
