@@ -3,7 +3,6 @@
 #include "videoplayer_darwin_command_queue.h"
 #include "videoplayer_darwin_helper.h"
 #include <dmsdk/sdk.h>
-#include <QuartzCore/QuartzCore.h>
 #include <algorithm>
 
 static const int INVALID_VIDEO_ID = -1;
