@@ -1,12 +1,16 @@
-#if defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #include "videoplayer_private.h"
 #include "darwin/videoplayer_darwin_helper.h"
+#if defined(DM_PLATFORM_IOS)
 #include "darwin/videoplayer_darwin_appdelegate.h"
+#endif
 #include "darwin/videoplayer_darwin_viewcontroller.h"
 #include "darwin/videoplayer_darwin_command_queue.h"
 
-VideoPlayerAppDelegate* g_AppDelegate         = NULL;
 VideoPlayerViewController* g_ViewController   = NULL;
+#if defined(DM_PLATFORM_IOS)
+VideoPlayerAppDelegate* g_AppDelegate         = NULL;
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -65,12 +69,17 @@ void dmVideoPlayer::SetVisible(int video, int visible) {
 // ----------------------------------------------------------------------------
 
 dmExtension::Result dmVideoPlayer::Init(dmExtension::Params* params) {
+#if defined(DM_PLATFORM_IOS)
     g_AppDelegate = [[VideoPlayerAppDelegate alloc] init];
     dmExtension::RegisteriOSUIApplicationDelegate(g_AppDelegate);
-
     if(g_ViewController == NULL) {
         g_ViewController = [[[VideoPlayerViewController alloc] init] initWithNibName:nil bundle:nil];
     }
+#elif defined(DM_PLATFORM_OSX)
+    if(g_ViewController == NULL) {
+        g_ViewController = [[VideoPlayerViewController alloc] init];
+    }
+#endif
 
     return dmExtension::RESULT_OK;
 }
@@ -82,9 +91,11 @@ dmExtension::Result dmVideoPlayer::Exit(dmExtension::Params* params) {
     CommandQueue::Clear();
 
     g_ViewController = NULL;
-    
+
+#if defined(DM_PLATFORM_IOS)
     dmExtension::UnregisteriOSUIApplicationDelegate(g_AppDelegate);
     g_AppDelegate = NULL;
+#endif
     return dmExtension::RESULT_OK;
 }
 

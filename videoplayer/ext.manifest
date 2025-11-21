@@ -3,7 +3,7 @@ name: "VideoPlayer"
 platforms:
   osx:
     context:
-        frameworks: ["AVFoundation", "AVKit", "CoreMedia"]
+        frameworks: ["AVFoundation", "AVKit", "CoreMedia", "AppKit", "QuartzCore"]
 
   ios:
     context:

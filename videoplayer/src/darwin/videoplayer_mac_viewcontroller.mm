@@ -1,11 +1,10 @@
-#if defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_OSX)
 #include "videoplayer_darwin_viewcontroller.h"
 #include "videoplayer_darwin_command_queue.h"
 #include "videoplayer_darwin_helper.h"
-#include <dmsdk/sdk.h>    // Logging
-#include <algorithm>    // std::max
-
-@implementation VideoPlayerViewController
+#include <dmsdk/sdk.h>
+#include <QuartzCore/QuartzCore.h>
+#include <algorithm>
 
 static const int INVALID_VIDEO_ID = -1;
 
@@ -20,22 +19,59 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     CommandQueue::Queue(&cmd);
 }
 
+@implementation VideoPlayerViewController
+
 - (id)init {
     self = [super init];
     if (self != nil) {
         m_SelectedVideoId = INVALID_VIDEO_ID;
         m_NumVideos = 0;
-        m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
-        m_PrevRootViewController = m_PrevWindow.rootViewController;
         m_IsSubLayerActive = false;
         m_ResumeOnForeground = false;
+        m_TargetWindow = nil;
+        m_TargetView = nil;
     }
     return self;
 }
 
+-(NSView*) TargetView {
+    if (m_TargetView != nil) {
+        return m_TargetView;
+    }
+
+    NSWindow* window = [NSApp mainWindow];
+    if (window == nil) {
+        window = [NSApp keyWindow];
+    }
+    if (window == nil) {
+        NSArray<NSWindow*>* windows = [NSApp windows];
+        if ([windows count] > 0) {
+            window = [windows objectAtIndex:0];
+        }
+    }
+
+    if (window == nil) {
+        dmLogError("Videoplayer: No active window found for macOS playback");
+        return nil;
+    }
+
+    m_TargetWindow = window;
+    m_TargetView = [window contentView];
+    [m_TargetView setWantsLayer:YES];
+    return m_TargetView;
+}
+
 -(void) AddSubLayer:(AVPlayerLayer*)layer {
+    NSView* targetView = [self TargetView];
+    if (targetView == nil) {
+        dmLogError("Videoplayer: Unable to attach layer, target view missing");
+        return;
+    }
+
     if(!m_IsSubLayerActive) {
-        [self.view.layer addSublayer:layer];
+        layer.frame = targetView.bounds;
+        layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+        [targetView.layer addSublayer:layer];
         m_IsSubLayerActive = true;
     } else {
         dmLogError("Videoplayer: Already have active sublayer - remove it first");
@@ -47,13 +83,17 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
         [layer removeFromSuperlayer];
         m_IsSubLayerActive = false;
     } else {
-        dmLogError("No sublayer to remove");
+        dmLogError("Videoplayer: No sublayer to remove");
     }
 }
 
 -(int) Create:(NSURL*)url callback:(dmVideoPlayer::LuaCallback*)cb playSound:(bool)playSound{
     if (m_NumVideos >= dmVideoPlayer::MAX_NUM_VIDEOS) {
         dmLogError("Videoplayer: Max number of videos opened: %d", dmVideoPlayer::MAX_NUM_VIDEOS);
+        return INVALID_VIDEO_ID;
+    }
+
+    if ([self TargetView] == nil) {
         return INVALID_VIDEO_ID;
     }
 
@@ -70,13 +110,10 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     player.muted = !playSound;
 
     AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
-    playerLayer.frame = self.view.bounds;
     [self AddSubLayer:playerLayer];
 
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    dmLogInfo("Videoplayer: screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
-
-    m_PrevWindow.rootViewController = self;
+    NSRect contentBounds = [m_TargetView bounds];
+    dmLogInfo("Videoplayer: windowBounds: (%f x %f)", contentBounds.size.width, contentBounds.size.height);
 
     int video = m_NumVideos;
     SDarwinVideoInfo& info = m_Videos[video];
@@ -92,6 +129,9 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     [player addObserver:self forKeyPath:@"status"
         options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionInitial)
         context:&info];
+    [playerItem addObserver:self forKeyPath:@"status"
+        options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionInitial)
+        context:&info];
 
     [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(PlayerItemDidReachEnd:)
@@ -100,12 +140,12 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 
     [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(AppEnteredBackground)
-        name:UIApplicationDidEnterBackgroundNotification
+        name:NSApplicationWillResignActiveNotification
         object: nil];
 
     [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(AppEnteredForeground)
-        name: UIApplicationWillEnterForegroundNotification
+        name: NSApplicationDidBecomeActiveNotification
         object: nil];
 
     m_NumVideos++;
@@ -129,6 +169,7 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     m_NumVideos = std::max(0, m_NumVideos - 1);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
     [info.m_Player removeObserver:self forKeyPath:@"status"];
+    [info.m_PlayerItem removeObserver:self forKeyPath:@"status"];
     
     [self RemoveSubLayer:info.m_PlayerLayer];
 
@@ -141,8 +182,6 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     info.m_Asset = nil;
 
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
-    m_PrevWindow.rootViewController = m_PrevRootViewController;
-
     m_SelectedVideoId = INVALID_VIDEO_ID;
 }
 
@@ -206,11 +245,9 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
 // ----------------------------------------------------------------------------
 
 -(void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
-    bool invalidParams = false;
     SDarwinVideoInfo* info = (SDarwinVideoInfo*)context;
     if(info == NULL) {
         dmLogError("Videoplayer: Video info missing!");
-        QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
         return;
     }
     
@@ -221,13 +258,22 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
     } 
 
     AVPlayer* player = info->m_Player;
-    if (object == player && [keyPath isEqualToString:@"status"]) {
-        if (player.status == AVPlayerStatusReadyToPlay) {
+    AVPlayerItem* item = info->m_PlayerItem;
+    if ((object == player || object == item) && [keyPath isEqualToString:@"status"]) {
+        AVPlayerStatus status = player.status;
+        if (item) {
+            status = item.status;
+        }
+        if (status == AVPlayerStatusReadyToPlay) {
             m_SelectedVideoId = info->m_VideoId;
             QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_OK, *info);
             return;
+        } else if (status == AVPlayerStatusFailed) {
+            dmLogError("Videoplayer: Video %d failed to prepare", info->m_VideoId);
+            QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
+            return;
         } else {
-            dmLogError("Videoplayer: Video %d not ready to play yet!", info->m_VideoId);
+            dmLogInfo("Videoplayer: Video %d still preparing", info->m_VideoId);
         }
     }
 }
@@ -289,14 +335,6 @@ static void QueueVideoCommand(dmVideoPlayer::CommandType commandType, SDarwinVid
             });
         }
     }
-}
-
-- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskPortrait;
-}
-
--(BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation == UIInterfaceOrientationPortrait;
 }
 
 @end

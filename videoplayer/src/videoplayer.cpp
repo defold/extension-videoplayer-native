@@ -4,7 +4,7 @@
 // Defold SDK
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 
 #include <stdlib.h>
 #include <stdio.h>
