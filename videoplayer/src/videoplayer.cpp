@@ -4,7 +4,7 @@
 // Defold SDK
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
+#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_HTML5)
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,25 +15,25 @@ static int Create(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 1);
 
-	bool playSound = true;
-	if(lua_istable(L, 2)){
-		lua_getfield(L, 2, "play_sound");
-		if(lua_isboolean(L, -1)){
-			playSound = lua_toboolean(L, -1);
-		}else if(!lua_isnil(L, -1)){
-			return luaL_error(L, "%s.Create() Expected type of 'play_sound' to be boolean!", MODULE_NAME);
-		}
-		lua_pop(L, 1);
-	}else if(!lua_isnil(L, 2)){
-		return luaL_error(L, "%s.Create() #2 argument only supports table: %s", MODULE_NAME, lua_tostring(L, 1));
-	}
+    bool playSound = true;
+    if(lua_istable(L, 2)){
+        lua_getfield(L, 2, "play_sound");
+        if(lua_isboolean(L, -1)){
+            playSound = lua_toboolean(L, -1);
+        }else if(!lua_isnil(L, -1)){
+            return luaL_error(L, "%s.Create() Expected type of 'play_sound' to be boolean!", MODULE_NAME);
+        }
+        lua_pop(L, 1);
+    }else if(!lua_isnil(L, 2)){
+        return luaL_error(L, "%s.Create() #2 argument only supports table: %s", MODULE_NAME, lua_tostring(L, 1));
+    }
 
     dmVideoPlayer::LuaCallback cb;
     dmVideoPlayer::RegisterCallback(L, 3, &cb);
 
-	dmVideoPlayer::VideoPlayerCreateInfo createInfo;
-	createInfo.m_Callback = &cb;
-	createInfo.m_PlaySound = playSound;
+    dmVideoPlayer::VideoPlayerCreateInfo createInfo;
+    createInfo.m_Callback = &cb;
+    createInfo.m_PlaySound = playSound;
 
     int video = 0;
     if (lua_isstring(L, 1) ) {
@@ -49,7 +49,7 @@ static int Create(lua_State* L)
         return luaL_error(L, "%s.Create() #1 argument only supports strings: %s", MODULE_NAME, lua_tostring(L, 1));
     }
 
-	dmLogWarning("Video created: %d", video);
+    dmLogWarning("Video created: %d", video);
 
     if (video >= 0) {
         lua_pushnumber(L, video);

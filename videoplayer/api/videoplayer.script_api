@@ -1,0 +1,123 @@
+- name: videoplayer
+  type: table
+  desc: Fullscreen video playback using native/HTML5 backends.
+
+  members:
+
+  - name: create
+    type: function
+    desc: Create a video handle for a URI and register a callback.
+    parameters:
+    - name: uri
+      type: string
+      desc: Video URI (remote URL or bundled resource).
+    - name: settings
+      type: table
+      optional: true
+      desc: Optional settings.
+      fields:
+      - name: play_sound
+        type: boolean
+        optional: true
+        desc: Play audio (default true).
+    - name: callback
+      type: function
+      desc: Called on video events.
+      parameters:
+      - name: self
+        type: object
+      - name: handle
+        type: number
+      - name: event
+        type: number
+      - name: data
+        type: table
+        optional: true
+        desc: On READY contains width/height.
+    returns:
+    - type: number
+      desc: Video handle or nil on failure.
+
+#*****************************************************************************************************
+
+  - name: destroy
+    type: function
+    desc: Destroy a video handle and remove the view.
+    parameters:
+    - name: handle
+      type: number
+
+#*****************************************************************************************************
+
+  - name: start
+    type: function
+    desc: Start playback.
+    parameters:
+    - name: handle
+      type: number
+
+#*****************************************************************************************************
+
+  - name: stop
+    type: function
+    desc: Stop playback and reset position.
+    parameters:
+    - name: handle
+      type: number
+
+#*****************************************************************************************************
+
+  - name: pause
+    type: function
+    desc: Pause playback.
+    parameters:
+    - name: handle
+      type: number
+
+#*****************************************************************************************************
+
+  - name: set_visible
+    type: function
+    desc: Show or hide the video view.
+    parameters:
+    - name: handle
+      type: number
+    - name: visible
+      type: boolean
+
+#*****************************************************************************************************
+
+  - name: VIDEO_EVENT_READY
+    type: number
+    desc: Video is prepared; data contains width/height.
+
+  - name: VIDEO_EVENT_FINISHED
+    type: number
+    desc: Playback finished.
+
+  - name: VIDEO_EVENT_FAILED
+    type: number
+    desc: Prepare/playback failed.
+
+#*****************************************************************************************************
+
+  examples:
+  - desc: |-
+           ```lua
+           local function video_callback(self, handle, event, data)
+               if event == videoplayer.VIDEO_EVENT_READY then
+                   print("ready", data.width, data.height)
+                   videoplayer.start(handle)
+               elseif event == videoplayer.VIDEO_EVENT_FINISHED then
+                   print("finished")
+                   videoplayer.destroy(handle)
+               elseif event == videoplayer.VIDEO_EVENT_FAILED then
+                   print("failed to play video")
+               end
+           end
+
+           function init(self)
+               self.handle = videoplayer.create("/assets/big_buck_bunny_720p_1mb.mp4", { play_sound = true }, video_callback)
+               assert(self.handle, "failed to create video")
+           end
+           ```

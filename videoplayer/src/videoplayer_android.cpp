@@ -159,7 +159,7 @@ void dmVideoPlayer::Destroy(int video)
     scope.env->DeleteGlobalRef(info.m_Video);
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     info.m_Video = 0;
-	--g_VideoContext.m_NumVideos;
+    --g_VideoContext.m_NumVideos;
 }
 
 void dmVideoPlayer::SetVisible(int video, int visible)
