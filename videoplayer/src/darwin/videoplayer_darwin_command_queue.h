@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_OSX)
 #pragma once
 
 namespace dmVideoPlayer {
@@ -15,5 +15,4 @@ namespace CommandQueue {
 }
 
 #endif
-
 

@@ -9,3 +9,5 @@ Thumbs.db
 .cproject
 builtins
 bob.jar
+/.editor_settings
+/AGENTS.md
