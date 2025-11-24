@@ -1,12 +1,13 @@
 
 # extension-videoplayer-native
 
-This is a fullscreen videoplayer extension for **iOS**, **macOS** and **Android** using native OS functionality and components for videoplayback.
+Fullscreen videoplayer extension for **iOS**, **macOS**, **Android**, and **HTML5** using native OS components or a web `<video>` overlay.
 
 # Usage
 
 Add the package link (https://github.com/defold/extension-videoplayer-native/archive/master.zip)
-to the project setting `project.dependencies`, and you should be good to go.
+to the project setting `project.dependencies`.
+
 
 See the [manual](http://www.defold.com/manuals/libraries/) for further info.
 
@@ -15,6 +16,7 @@ See the [manual](http://www.defold.com/manuals/libraries/) for further info.
 ## videoplayer.create(uri, settings, callback)
 
 Opens a video from either a uri, and returns a handle to the videoplayer.
+`settings.play_sound` (default true) controls whether audio is muted.
     
 ```lua
 function videoplayer_callback(self, video, event, data={})
@@ -75,12 +77,28 @@ end
 
 # Limitations
 
+## HTML5
+
+- Uses a single `<video>` element layered above the canvas; one handle at a time.
+- Autoplay with sound requires a user gesture on most browsers; start playback after a tap/click.
+- Element is hidden with `set_visible(false)`; positioning is fullscreen by default.
+
 ## Android
 
 The android implementation uses the [MediaPlayer](https://developer.android.com/reference/android/media/MediaPlayer) in combination with a [SurfaceView](https://developer.android.com/reference/android/view/SurfaceView) to display the video.
 
 Here's a list of [Supported Video Formats](https://developer.android.com/guide/topics/media/media-formats)
 
+# macOS
+
+- Uses `AVPlayer`/`AVPlayerViewController` in a fullscreen window layered over the Defold view.
+- One video at a time; `set_visible(false)` hides but keeps the player alive.
+- H.264/AAC is the safest choice; other codecs depend on system support.
+
 
 # iOS
-TODO
+
+- Uses `AVPlayer`/`AVPlayerViewController` for playback with system controls hidden.
+- Plays fullscreen above the Defold view; visibility is controlled via `set_visible`.
+- Supports H.264/AAC streams and local/bundled files resolvable via `videoplayer.create` URI.
+- Pause/resume is handled in the sample by window focus callbacks; adopt similar handling if your app relies on focus changes.

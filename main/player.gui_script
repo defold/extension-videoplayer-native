@@ -1,6 +1,6 @@
 local function log(msg)
 	print(msg)
-	gui.set_text(gui.get_node("label"), msg)
+	gui.set_text(gui.get_node("label"), tostring(msg))
 end
 
 local function video_callback(self, video, event, data)
@@ -24,7 +24,14 @@ function video_begin(self)
 	if videoplayer then
 		log("Loading...")
 
-		local videos = {"big_buck_bunny_720p_1mb.mp4"}
+		local is_editor_build = os.getenv("DM_SERVICE_PORT") ~= nil
+		
+		local videos
+		if is_editor_build then
+			videos = {"res/ios/assets/big_buck_bunny_720p_1mb.mp4"}
+		else
+			videos = {"big_buck_bunny_720p_1mb.mp4"}
+		end
 
 		self.play_sound = not self.play_sound
 		self.video = videoplayer.create(videos[math.random(#videos)], {play_sound = self.play_sound}, video_callback)
@@ -63,6 +70,7 @@ function init(self)
 	self.logo_node = gui.get_node("logo")
 	self.color = gui.get_color(self.box_node)
 	self.play_sound = false
+
 end
 
 function on_input(self, action_id, action)
