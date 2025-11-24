@@ -24,7 +24,7 @@ function video_begin(self)
 	if videoplayer then
 		log("Loading...")
 
-		local is_editor_build = os.getenv("DM_SERVICE_PORT") == "dynamic"
+		local is_editor_build = os.getenv("DM_SERVICE_PORT") ~= nil
 		
 		local videos
 		if is_editor_build then
