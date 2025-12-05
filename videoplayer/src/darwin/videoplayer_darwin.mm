@@ -120,21 +120,34 @@ void VideoPlayerObserveValueForKeyPath(VideoPlayerViewController* controller, NS
 
     AVPlayer* player = info->m_Player;
     AVPlayerItem* item = info->m_PlayerItem;
+
     if ((object == player || object == item) && [keyPath isEqualToString:@"status"]) {
-        AVPlayerStatus status = player.status;
-        if (item) {
-            status = item.status;
-        }
-        if (status == AVPlayerStatusReadyToPlay) {
-            controller->m_SelectedVideoId = info->m_VideoId;
-            QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_OK, *info);
-            return;
-        } else if (status == AVPlayerStatusFailed) {
-            dmLogError("Videoplayer: Video %d failed to prepare", info->m_VideoId);
-            QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
-            return;
-        } else {
-            dmLogInfo("Videoplayer: Video %d still preparing", info->m_VideoId);
+        if (item && object == item) {
+            AVPlayerItemStatus itemStatus = item.status;
+            if (itemStatus == AVPlayerItemStatusReadyToPlay) {
+                controller->m_SelectedVideoId = info->m_VideoId;
+                QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_OK, *info);
+                return;
+            } else if (itemStatus == AVPlayerItemStatusFailed) {
+                dmLogError("Videoplayer: Video %d failed to prepare", info->m_VideoId);
+                QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
+                return;
+            } else {
+                dmLogInfo("Videoplayer: Video %d still preparing", info->m_VideoId);
+            }
+        } else if (object == player) {
+            AVPlayerStatus playerStatus = player.status;
+            if (playerStatus == AVPlayerStatusReadyToPlay) {
+                controller->m_SelectedVideoId = info->m_VideoId;
+                QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_OK, *info);
+                return;
+            } else if (playerStatus == AVPlayerStatusFailed) {
+                dmLogError("Videoplayer: Video %d failed to prepare", info->m_VideoId);
+                QueueVideoCommand(dmVideoPlayer::CMD_PREPARE_ERROR, *info);
+                return;
+            } else {
+                dmLogInfo("Videoplayer: Video %d still preparing", info->m_VideoId);
+            }
         }
     }
 }
