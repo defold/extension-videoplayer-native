@@ -8,6 +8,45 @@ Fullscreen videoplayer extension for **iOS**, **macOS**, **Android**, and **HTML
 Add the package link (https://github.com/defold/extension-videoplayer-native/archive/master.zip)
 to the project setting `project.dependencies`.
 
+To use this library in your Defold project, add the needed version URL to your `game.project` dependencies from [Releases](https://github.com/defold/extension-videoplayer-native/releases)
+
+<img width="401" alt="image" src="https://user-images.githubusercontent.com/2209596/202223571-c77f0304-5202-4314-869d-7a90bbeec5ec.png">
+
+## Bundle Resources
+
+To ship a video with your build, add it to Defold bundle resources so it ends up in the final app package.
+
+1. Place the file in a project folder.
+2. Add the path to `game.project` under `bundle_resources` (comma-separated list).
+3. Use a relative URI when calling `videoplayer.create`, matching the bundled path (e.g. `video.mp4` if you bundle it from the project root, or `assets/video.mp4` if you bundle `/assets/video.mp4`).
+
+Example `game.project` entry:
+```
+bundle_resources = /res
+```
+
+Bundled resources work on **iOS**, **macOS**, **Android**, and **HTML5**.
+
+### Platform layout under `res/`
+
+This project already bundles `/res` (see `game.project`), and uses per-platform subfolders:
+
+- `res/android/assets/` → files land in the APK assets root; use `videoplayer.create("file.mp4", ...)`.
+- `res/ios/assets/` → files land in the app bundle root; use `videoplayer.create("file.mp4", ...)`.
+- `res/osx/` → files land in the macOS app bundle root; use `videoplayer.create("file.mp4", ...)`.
+- `res/web/` → files are copied to the HTML5 build root; use `videoplayer.create("file.mp4", ...)`.
+
+If you need a subfolder in the bundle, mirror it under the platform folder (e.g. `res/ios/assets/videos/intro.mp4` → `videoplayer.create("videos/intro.mp4", ...)`).
+
+### Playing video in the editor
+
+The sample GUI script uses an editor-only path when running from the Defold editor:
+
+- In `main/player.gui_script`, `is_editor_build` selects `res/ios/assets/big_buck_bunny_720p_1mb.mp4`.
+- In bundled builds, it uses the bundled root path `big_buck_bunny_720p_1mb.mp4`.
+
+If you want a different editor video, place it under `res/ios/assets/` and update the editor path in `main/player.gui_script`.
+
 
 See the [manual](http://www.defold.com/manuals/libraries/) for further info.
 

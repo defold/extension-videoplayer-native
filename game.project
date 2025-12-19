@@ -1,7 +1,6 @@
 [project]
 title = VideoPlayer
 version = 0.1
-custom_resources = customres
 bundle_resources = /res
 
 [bootstrap]
