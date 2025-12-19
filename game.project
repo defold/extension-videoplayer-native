@@ -14,6 +14,7 @@ game_binding = /input/game.input_bindingc
 width = 720
 height = 1280
 fullscreen = 0
+dynamic_orientation = 1
 
 [physics]
 scale = 0.02

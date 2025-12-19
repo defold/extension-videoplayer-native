@@ -19,6 +19,10 @@ import java.lang.Runnable;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.IllegalStateException;
 import java.lang.IllegalArgumentException;
 
@@ -37,6 +41,8 @@ class Movie implements
 	private int currentPosition;
 
 	private LinearLayout layout;
+
+	private File cachedAssetFile;
 
 	boolean destroyed;
 
@@ -81,6 +87,7 @@ class Movie implements
 
 		Logger.log("Movie: new VideoView");
 		videoView = new VideoView((Context)activity);
+		videoView.setScaleMode(VideoView.ScaleMode.Fit);
 		videoView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
 		final Movie instance = this;
@@ -138,12 +145,32 @@ class Movie implements
 	}
 
 	private void setDataSource() {
+		String path = uri;
 		try {
-			String path = uri;
-			Logger.log("Movie: openFd(): " + path);
-			AssetFileDescriptor afd = activity.getAssets().openFd(path);
-			mediaPlayer.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
-			afd.close();
+			if (!isAssetPath(path)) {
+				Logger.log("Movie: setDataSource(): " + path);
+				if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("content://") || path.startsWith("file://")) {
+					mediaPlayer.setDataSource(activity, Uri.parse(path));
+				} else {
+					mediaPlayer.setDataSource(path);
+				}
+				return;
+			}
+
+			try {
+				Logger.log("Movie: openFd(): " + path);
+				AssetFileDescriptor afd = activity.getAssets().openFd(path);
+				mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+				afd.close();
+				return;
+			} catch (FileNotFoundException e) {
+				// Some packaging pipelines compress assets; compressed assets can't be opened with openFd().
+				Logger.log("Movie: openFd() failed, falling back to cache copy: " + e.toString());
+			}
+
+			File cached = ensureAssetCopiedToCache(path);
+			Logger.log("Movie: setDataSource(cache): " + cached.getAbsolutePath());
+			mediaPlayer.setDataSource(cached.getAbsolutePath());
 		} catch (IllegalStateException e) {
 			Logger.log(e.toString());
 		} catch (IllegalArgumentException e) {
@@ -151,6 +178,48 @@ class Movie implements
 		} catch (IOException e) {
 			Logger.log(e.toString());
 		}
+	}
+
+	private boolean isAssetPath(String path) {
+		return path != null && !path.startsWith("/") && path.indexOf("://") == -1;
+	}
+
+	private File ensureAssetCopiedToCache(String assetPath) throws IOException {
+		if (cachedAssetFile != null && cachedAssetFile.exists() && cachedAssetFile.length() > 0) {
+			return cachedAssetFile;
+		}
+
+		File cacheDir = new File(activity.getCacheDir(), "videoplayer-assets");
+		if (!cacheDir.exists() && !cacheDir.mkdirs()) {
+			throw new IOException("Failed to create cache dir: " + cacheDir.getAbsolutePath());
+		}
+
+		String safeName = assetPath.replace('/', '_').replace('\\', '_');
+		File outFile = new File(cacheDir, safeName);
+
+		if (outFile.exists() && outFile.length() > 0) {
+			cachedAssetFile = outFile;
+			return outFile;
+		}
+
+		InputStream in = null;
+		OutputStream out = null;
+		try {
+			in = activity.getAssets().open(assetPath);
+			out = new FileOutputStream(outFile);
+			byte[] buffer = new byte[64 * 1024];
+			int read;
+			while ((read = in.read(buffer)) != -1) {
+				out.write(buffer, 0, read);
+			}
+			out.flush();
+		} finally {
+			if (in != null) in.close();
+			if (out != null) out.close();
+		}
+
+		cachedAssetFile = outFile;
+		return outFile;
 	}
 
 	@Override
@@ -188,6 +257,13 @@ class Movie implements
 
 				WindowManager wm = activity.getWindowManager();
 				wm.removeView(layout);
+
+				if (cachedAssetFile != null) {
+					// Best-effort cleanup. Ignore failure (cache may be cleared by OS anyway).
+					//noinspection ResultOfMethodCallIgnored
+					cachedAssetFile.delete();
+					cachedAssetFile = null;
+				}
 			}
 		});
 	}
