@@ -85,20 +85,28 @@ bool VideoPlayerDestroy(VideoPlayerViewController* controller, int video) {
     
     SDarwinVideoInfo& info = controller->m_Videos[video];
     controller->m_NumVideos = std::max(0, controller->m_NumVideos - 1);
+
     [[NSNotificationCenter defaultCenter] removeObserver: controller];
-    [info.m_Player removeObserver:controller forKeyPath:@"status"];
-    [info.m_PlayerItem removeObserver:controller forKeyPath:@"status"];
+    if (info.m_Player != nil) {
+        [info.m_Player removeObserver:controller forKeyPath:@"status"];
+    }
+    if (info.m_PlayerItem != nil) {
+        [info.m_PlayerItem removeObserver:controller forKeyPath:@"status"];
+    }
+
+    // Ensure the player stays valid while we tear down its layer.
+    if (info.m_Player != nil) {
+        [info.m_Player pause];
+        [info.m_Player replaceCurrentItemWithPlayerItem:nil];
+    }
     
     [controller RemoveSubLayer:info.m_PlayerLayer];
-
     [info.m_PlayerLayer setPlayer:nil];
     info.m_PlayerLayer = nil;
-
-    [info.m_Player replaceCurrentItemWithPlayerItem: nil];
     info.m_Player = nil;
     info.m_PlayerItem = nil;
     info.m_Asset = nil;
-
+    
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     controller->m_SelectedVideoId = INVALID_VIDEO_ID;
 
