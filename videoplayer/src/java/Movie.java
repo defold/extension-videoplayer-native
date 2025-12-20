@@ -144,6 +144,10 @@ class Movie implements
 		Logger.log("Movie: setup() end");
 	}
 
+	// Resolve the media source:
+	// 1) Non-asset URI/path -> pass through to MediaPlayer (URI or file path).
+	// 2) Asset path -> try openFd() for uncompressed assets; if that fails (compressed),
+	//    copy to cache and point MediaPlayer at the cached file.
 	private void setDataSource() {
 		String path = uri;
 		try {
@@ -157,11 +161,9 @@ class Movie implements
 				return;
 			}
 
-			try {
+			try (AssetFileDescriptor afd = activity.getAssets().openFd(path)) {
 				Logger.log("Movie: openFd(): " + path);
-				AssetFileDescriptor afd = activity.getAssets().openFd(path);
 				mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-				afd.close();
 				return;
 			} catch (FileNotFoundException e) {
 				// Some packaging pipelines compress assets; compressed assets can't be opened with openFd().
@@ -202,25 +204,20 @@ class Movie implements
 			return outFile;
 		}
 
-		InputStream in = null;
-		OutputStream out = null;
-		try {
-			in = activity.getAssets().open(assetPath);
-			out = new FileOutputStream(outFile);
+		try (InputStream in = activity.getAssets().open(assetPath);
+			 OutputStream out = new FileOutputStream(outFile)) {
 			byte[] buffer = new byte[64 * 1024];
 			int read;
 			while ((read = in.read(buffer)) != -1) {
 				out.write(buffer, 0, read);
 			}
 			out.flush();
-		} finally {
-			if (in != null) in.close();
-			if (out != null) out.close();
 		}
 
 		cachedAssetFile = outFile;
 		return outFile;
 	}
+
 
 	@Override
 	public void onPrepared(final MediaPlayer mediaPlayer){
@@ -259,9 +256,11 @@ class Movie implements
 				wm.removeView(layout);
 
 				if (cachedAssetFile != null) {
-					// Best-effort cleanup. Ignore failure (cache may be cleared by OS anyway).
-					//noinspection ResultOfMethodCallIgnored
-					cachedAssetFile.delete();
+					// Best-effort cleanup; log failures for diagnostics.
+					boolean deleted = cachedAssetFile.delete();
+					if (!deleted) {
+						Logger.log("Movie: cache delete failed: " + cachedAssetFile.getAbsolutePath());
+					}
 					cachedAssetFile = null;
 				}
 			}
