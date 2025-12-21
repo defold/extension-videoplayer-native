@@ -1,7 +1,7 @@
 
 # extension-videoplayer-native
 
-Fullscreen videoplayer extension for **iOS**, **macOS**, **Android**, and **HTML5** using native OS components or a web `<video>` overlay.
+Fullscreen videoplayer extension for **iOS**, **macOS**, **Android**, **Windows**, and **HTML5** using native OS components or a web `<video>` overlay.
 
 # Usage
 
@@ -25,7 +25,7 @@ Example `game.project` entry:
 bundle_resources = /res
 ```
 
-Bundled resources work on **iOS**, **macOS**, **Android**, and **HTML5**.
+Bundled resources work on **iOS**, **macOS**, **Android**, **Windows**, and **HTML5**.
 
 ### Platform layout under `res/`
 
@@ -141,3 +141,9 @@ Here's a list of [Supported Video Formats](https://developer.android.com/guide/t
 - Plays fullscreen above the Defold view; visibility is controlled via `set_visible`.
 - Supports H.264/AAC streams and local/bundled files resolvable via `videoplayer.create` URI.
 - Pause/resume is handled in the sample by window focus callbacks; adopt similar handling if your app relies on focus changes.
+
+# Windows
+
+- Uses Media Foundation (`IMFMediaEngine`) for playback.
+- Renders to a fullscreen child window layered above the Defold HWND.
+- Supports H.264/AAC in MP4 containers and file/URL sources supported by the OS.
