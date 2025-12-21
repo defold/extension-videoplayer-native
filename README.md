@@ -1,6 +1,8 @@
 
 # extension-videoplayer-native
 
+[![Build with bob](https://github.com/defold/extension-videoplayer-native/actions/workflows/bob.yml/badge.svg)](https://github.com/defold/extension-videoplayer-native/actions/workflows/bob.yml)
+
 Fullscreen videoplayer extension for **iOS**, **macOS**, **Android**, **Windows**, and **HTML5** using native OS components or a web `<video>` overlay.
 
 # Usage
