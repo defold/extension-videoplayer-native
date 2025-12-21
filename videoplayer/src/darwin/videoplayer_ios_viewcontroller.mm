@@ -9,8 +9,8 @@
     if (self != nil) {
         m_SelectedVideoId = INVALID_VIDEO_ID;
         m_NumVideos = 0;
-        m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
-        m_PrevRootViewController = m_PrevWindow.rootViewController;
+        m_PrevWindow = nil;
+        m_PrevRootViewController = nil;
         m_IsSubLayerActive = false;
         m_ResumeOnForeground = false;
     }
@@ -41,6 +41,17 @@
         return INVALID_VIDEO_ID;
     }
 
+    // Capture and retain the previous root view controller the first time we present.
+    // Under MRC, setting rootViewController releases the previous controller; we must retain it if we want to restore later.
+    if (m_PrevWindow == nil) {
+        m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
+        [m_PrevWindow retain];
+    }
+    if (m_PrevRootViewController == nil && m_PrevWindow != nil) {
+        m_PrevRootViewController = m_PrevWindow.rootViewController;
+        [m_PrevRootViewController retain];
+    }
+
     float width = 0.0f, height = 0.0f;
     AVURLAsset* asset = [AVURLAsset URLAssetWithURL:url options:nil];
     if(Helper::GetInfoFromAsset(asset, width, height)) {
@@ -60,7 +71,12 @@
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("Videoplayer: screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
 
-    m_PrevWindow.rootViewController = self;
+    if (m_PrevWindow != nil) {
+        m_PrevWindow.rootViewController = self;
+    } else {
+        dmLogError("Videoplayer: Missing window when presenting root view controller");
+        return INVALID_VIDEO_ID;
+    }
 
     int video = m_NumVideos;
     SDarwinVideoInfo& info = m_Videos[video];
@@ -103,7 +119,15 @@
     if(!VideoPlayerDestroy(self, video)) {
         return;
     }
-    m_PrevWindow.rootViewController = m_PrevRootViewController;
+
+    // Restore the previous root view controller when the last video is destroyed.
+    if (m_NumVideos == 0 && m_PrevWindow != nil) {
+        m_PrevWindow.rootViewController = m_PrevRootViewController;
+        [m_PrevRootViewController release];
+        [m_PrevWindow release];
+        m_PrevRootViewController = nil;
+        m_PrevWindow = nil;
+    }
 }
 
 -(bool) IsReady:(int)video {
