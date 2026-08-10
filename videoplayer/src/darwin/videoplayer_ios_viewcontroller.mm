@@ -13,8 +13,23 @@
         m_PrevRootViewController = nil;
         m_IsSubLayerActive = false;
         m_ResumeOnForeground = false;
+        // On iOS the video view controller becomes the rootViewController, so Defold is
+        // outside the view hierarchy and never receives the touch. To allow skipping the
+        // video, a native tap gesture ends the current video (fires the FINISHED event)
+        // and the game continues on its own. The video still renders normally.
+        UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc]
+            initWithTarget:self action:@selector(OnTapSkip)];
+        [self.view addGestureRecognizer:tap];
+        [tap release];
     }
     return self;
+}
+
+// Tap on the video => skip it: fires FINISHED for the current video (if any).
+-(void) OnTapSkip {
+    if (m_SelectedVideoId != INVALID_VIDEO_ID) {
+        VideoPlayerDidReachEnd(self);
+    }
 }
 
 -(void) AddSubLayer:(AVPlayerLayer*)layer {

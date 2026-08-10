@@ -136,7 +136,11 @@ class Movie implements
 		windowParams.y = Gravity.CENTER;
 		windowParams.width = WindowManager.LayoutParams.MATCH_PARENT;
 		windowParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-		windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+		// Make the video window non-touchable so touch events pass through to the
+		// Defold window behind it. This lets the game detect taps during playback
+		// (e.g. to skip the intro). The video still renders normally.
+		windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+		                   | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
 
 		WindowManager wm = activity.getWindowManager();
 		wm.addView(layout, windowParams);
