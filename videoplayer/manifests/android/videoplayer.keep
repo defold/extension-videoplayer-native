@@ -1,0 +1,2 @@
+# Native code loads the video player classes and invokes their methods by name.
+-keep,allowoptimization class com.defold.android.videoplayer.** { *; }
