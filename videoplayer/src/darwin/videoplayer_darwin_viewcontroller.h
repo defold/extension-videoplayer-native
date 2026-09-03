@@ -24,8 +24,8 @@ struct SDarwinVideoInfo {
         int                         m_SelectedVideoId;
         int                         m_NumVideos;
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
-        UIWindow*                   m_PrevWindow;
-        UIViewController*           m_PrevRootViewController;
+        UIWindow*                   m_TargetWindow;
+        UIView*                     m_TargetView;
         CMTime                      m_PauseTime;
         bool                        m_IsSubLayerActive;
         bool                        m_ResumeOnForeground;
