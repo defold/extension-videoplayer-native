@@ -9,21 +9,49 @@
     if (self != nil) {
         m_SelectedVideoId = INVALID_VIDEO_ID;
         m_NumVideos = 0;
-        m_PrevWindow = nil;
-        m_PrevRootViewController = nil;
+        m_TargetWindow = nil;
+        m_TargetView = nil;
         m_IsSubLayerActive = false;
         m_ResumeOnForeground = false;
     }
     return self;
 }
 
+// Target view = Defold's view (the window's rootViewController view). The video is drawn as a
+// CALayer ON TOP of it, WITHOUT replacing the rootViewController. A CALayer is not part of the
+// responder chain, so touches keep reaching Defold and the game decides when to skip (in Lua,
+// via videoplayer.stop) - same model as Android (FLAG_NOT_TOUCHABLE). Mirrors the macOS player.
+-(UIView*) TargetView {
+    if (m_TargetView != nil) {
+        return m_TargetView;
+    }
+    UIWindow* window = [[[UIApplication sharedApplication] delegate] window];
+    if (window == nil) {
+        window = [[UIApplication sharedApplication] keyWindow];
+    }
+    if (window == nil) {
+        dmLogError("Videoplayer: No active window found for iOS playback");
+        return nil;
+    }
+    m_TargetWindow = window;
+    m_TargetView = window.rootViewController.view != nil ? window.rootViewController.view : window;
+    return m_TargetView;
+}
+
 -(void) AddSubLayer:(AVPlayerLayer*)layer {
+    UIView* targetView = [self TargetView];
+    if (targetView == nil) {
+        dmLogError("Videoplayer: Unable to attach layer, target view missing");
+        return;
+    }
     if(!m_IsSubLayerActive) {
-        [self.view.layer addSublayer:layer];
+        layer.frame = targetView.bounds;
+        layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+        [targetView.layer addSublayer:layer];
         m_IsSubLayerActive = true;
     } else {
         dmLogError("Videoplayer: Already have active sublayer - remove it first");
-    } 
+    }
 }
 
 -(void) RemoveSubLayer:(AVPlayerLayer*)layer {
@@ -41,15 +69,9 @@
         return INVALID_VIDEO_ID;
     }
 
-    // Capture and retain the previous root view controller the first time we present.
-    // Under MRC, setting rootViewController releases the previous controller; we must retain it if we want to restore later.
-    if (m_PrevWindow == nil) {
-        m_PrevWindow = [[[UIApplication sharedApplication]delegate] window];
-        [m_PrevWindow retain];
-    }
-    if (m_PrevRootViewController == nil && m_PrevWindow != nil) {
-        m_PrevRootViewController = m_PrevWindow.rootViewController;
-        [m_PrevRootViewController retain];
+    // Render as an overlay on top of Defold's view (do not replace the rootViewController).
+    if ([self TargetView] == nil) {
+        return INVALID_VIDEO_ID;
     }
 
     float width = 0.0f, height = 0.0f;
@@ -59,24 +81,16 @@
     }
 
     m_SelectedVideoId = INVALID_VIDEO_ID;
-    
+
     AVPlayerItem* playerItem = [AVPlayerItem playerItemWithAsset:asset];
     AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
     player.muted = !playSound;
 
     AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
-    playerLayer.frame = self.view.bounds;
-    [self AddSubLayer:playerLayer];
+    [self AddSubLayer:playerLayer];   // sized to the target view (overlay above Defold)
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("Videoplayer: screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
-
-    if (m_PrevWindow != nil) {
-        m_PrevWindow.rootViewController = self;
-    } else {
-        dmLogError("Videoplayer: Missing window when presenting root view controller");
-        return INVALID_VIDEO_ID;
-    }
 
     int video = m_NumVideos;
     SDarwinVideoInfo& info = m_Videos[video];
@@ -116,17 +130,12 @@
 }
 
 -(void) Destroy:(int)video {
-    if(!VideoPlayerDestroy(self, video)) {
-        return;
-    }
-
-    // Restore the previous root view controller when the last video is destroyed.
-    if (m_NumVideos == 0 && m_PrevWindow != nil) {
-        m_PrevWindow.rootViewController = m_PrevRootViewController;
-        [m_PrevRootViewController release];
-        [m_PrevWindow release];
-        m_PrevRootViewController = nil;
-        m_PrevWindow = nil;
+    VideoPlayerDestroy(self, video);   // removes the sublayer and decrements m_NumVideos
+    // The video is an overlay, so there is no rootViewController to restore. When the last video
+    // is destroyed, drop the borrowed target references (they are owned by the app, not retained).
+    if (m_NumVideos == 0) {
+        m_TargetView = nil;
+        m_TargetWindow = nil;
     }
 }
 
@@ -162,7 +171,7 @@
     VideoPlayerObserveValueForKeyPath(self, keyPath, object, change, context);
 }
 
-- (void)PlayerItemDidReachEnd:(NSNotification *)notification { 
+- (void)PlayerItemDidReachEnd:(NSNotification *)notification {
     VideoPlayerDidReachEnd(self);
 }
 
