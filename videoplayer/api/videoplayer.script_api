@@ -60,7 +60,7 @@
 
   - name: stop
     type: function
-    desc: Stop playback and reset position.
+    desc: Stop playback without removing the video view or emitting VIDEO_EVENT_FINISHED. Call destroy to skip and remove the video.
     parameters:
     - name: handle
       type: number

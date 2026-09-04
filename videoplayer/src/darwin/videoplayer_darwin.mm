@@ -78,7 +78,7 @@ bool VideoPlayerDestroy(VideoPlayerViewController* controller, int video) {
         return false;
     }
     
-    if (video >= controller->m_NumVideos) {
+    if (video < 0 || video >= controller->m_NumVideos) {
         dmLogError("Videoplayer: Invalid video id: %d", video);
         return false;
     }
@@ -102,6 +102,12 @@ bool VideoPlayerDestroy(VideoPlayerViewController* controller, int video) {
     
     [controller RemoveSubLayer:info.m_PlayerLayer];
     [info.m_PlayerLayer setPlayer:nil];
+
+    [info.m_PlayerLayer release];
+    [info.m_Player release];
+    [info.m_PlayerItem release];
+    [info.m_Asset release];
+
     info.m_PlayerLayer = nil;
     info.m_Player = nil;
     info.m_PlayerItem = nil;

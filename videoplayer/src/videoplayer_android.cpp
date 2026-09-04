@@ -148,14 +148,17 @@ int dmVideoPlayer::CreateWithUri(const char* uri, const VideoPlayerCreateInfo& c
 void dmVideoPlayer::Destroy(int video)
 {
     DBGFNLOG;
-    // TODO: mutex lock!
+    AttachScope scope;
+    SAndroidVideoInfo& info = g_VideoContext.m_Videos[video];
+    scope.env->CallStaticVoidMethod(g_VideoContext.m_Class, g_VideoContext.m_DestroyFn, info.m_Video);
+
+    // Movie.destroy() synchronizes with the Java callbacks and marks the movie destroyed before
+    // returning. Clear commands afterwards so an in-flight callback cannot leave a READY or
+    // FINISHED event referencing the callback that is unregistered below.
     if(g_VideoContext.m_CmdQueue.Size() > 0) {
         dmVideoPlayer::ClearCommandQueueFromID(video, g_VideoContext.m_CmdQueue.Size(), &g_VideoContext.m_CmdQueue[0]);
     }
 
-    AttachScope scope;
-    SAndroidVideoInfo& info = g_VideoContext.m_Videos[video];
-    scope.env->CallStaticVoidMethod(g_VideoContext.m_Class, g_VideoContext.m_DestroyFn, info.m_Video);
     scope.env->DeleteGlobalRef(info.m_Video);
     dmVideoPlayer::UnregisterCallback(&info.m_Callback);
     info.m_Video = 0;

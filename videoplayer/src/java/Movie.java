@@ -44,7 +44,7 @@ class Movie implements
 
 	private File cachedAssetFile;
 
-	boolean destroyed;
+	volatile boolean destroyed;
 
 
 	// Add more functions callback to C to convey messages
@@ -224,8 +224,9 @@ class Movie implements
 
 
 	@Override
-	public void onPrepared(final MediaPlayer mediaPlayer){
+	public synchronized void onPrepared(final MediaPlayer mediaPlayer){
 		Logger.log("Movie: Movie onPrepared()");
+		if (destroyed)return;
 
 		videoView.setSize(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
 
@@ -239,12 +240,13 @@ class Movie implements
 	}
 
 	@Override
-	public void onCompletion(MediaPlayer mp) {
+	public synchronized void onCompletion(MediaPlayer mp) {
 		Logger.log("Movie: onCompletion");
+		if (destroyed)return;
 		videoIsFinished(id);
 	}
 
-	public void destroy(){
+	public synchronized void destroy(){
 		Logger.log("Movie: destroy()");
 
 		destroyed = true;

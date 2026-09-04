@@ -101,12 +101,12 @@
 
     int video = m_NumVideos;
     SDarwinVideoInfo& info = m_Videos[video];
-    info.m_Asset = asset;
-    info.m_PlayerItem = playerItem;
+    info.m_Asset = [asset retain];
+    info.m_PlayerItem = [playerItem retain];
     info.m_Width = width;
     info.m_Height = height;
-    info.m_Player = player;
-    info.m_PlayerLayer = playerLayer;
+    info.m_Player = [player retain];
+    info.m_PlayerLayer = [playerLayer retain];
     info.m_VideoId = video;
     info.m_Callback = *cb;
 
@@ -137,7 +137,13 @@
 }
 
 -(void) Destroy:(int)video {
-    VideoPlayerDestroy(self, video);
+    if (!VideoPlayerDestroy(self, video)) {
+        return;
+    }
+    if (m_NumVideos == 0) {
+        m_TargetView = nil;
+        m_TargetWindow = nil;
+    }
 }
 
 -(bool) IsReady:(int)video {

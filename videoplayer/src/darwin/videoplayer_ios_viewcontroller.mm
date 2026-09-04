@@ -2,6 +2,49 @@
 #include "videoplayer_darwin.h"
 #include "videoplayer_darwin_helper.h"
 
+@interface DMVideoPlayerOverlayView : UIView
+@end
+
+@implementation DMVideoPlayerOverlayView
+
++ (Class)layerClass {
+    return [AVPlayerLayer class];
+}
+
+@end
+
+static UIWindow* FindTargetWindow() {
+    UIApplication* application = [UIApplication sharedApplication];
+    id<UIApplicationDelegate> delegate = application.delegate;
+    UIWindow* delegateWindow = [delegate respondsToSelector:@selector(window)] ? delegate.window : nil;
+    // Defold owns this window in the normal single-scene setup. Prefer it even when another
+    // transient window is currently key (for example, a system dialog).
+    if (delegateWindow != nil) {
+        return delegateWindow;
+    }
+
+    UIWindow* fallbackWindow = nil;
+    for (UIScene* scene in application.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        if (scene.activationState != UISceneActivationStateForegroundActive &&
+            scene.activationState != UISceneActivationStateForegroundInactive) {
+            continue;
+        }
+
+        for (UIWindow* candidate in ((UIWindowScene*)scene).windows) {
+            if (candidate.isKeyWindow) {
+                return candidate;
+            }
+            if (fallbackWindow == nil && !candidate.hidden) {
+                fallbackWindow = candidate;
+            }
+        }
+    }
+    return fallbackWindow;
+}
+
 @implementation VideoPlayerViewController
 
 - (id)init {
@@ -11,24 +54,22 @@
         m_NumVideos = 0;
         m_TargetWindow = nil;
         m_TargetView = nil;
+        m_PlayerView = nil;
         m_IsSubLayerActive = false;
         m_ResumeOnForeground = false;
     }
     return self;
 }
 
-// Target view = Defold's view (the window's rootViewController view). The video is drawn as a
-// CALayer ON TOP of it, WITHOUT replacing the rootViewController. A CALayer is not part of the
-// responder chain, so touches keep reaching Defold and the game decides when to skip (in Lua,
-// via videoplayer.stop) - same model as Android (FLAG_NOT_TOUCHABLE). Mirrors the macOS player.
+// Target view = Defold's view (the window's rootViewController view). The video is drawn in a
+// non-interactive UIView backed by AVPlayerLayer, WITHOUT replacing the rootViewController.
+// Touches keep reaching Defold and the game decides when to skip (in Lua, via videoplayer.destroy) -
+// same model as Android (FLAG_NOT_TOUCHABLE).
 -(UIView*) TargetView {
     if (m_TargetView != nil) {
         return m_TargetView;
     }
-    UIWindow* window = [[[UIApplication sharedApplication] delegate] window];
-    if (window == nil) {
-        window = [[UIApplication sharedApplication] keyWindow];
-    }
+    UIWindow* window = FindTargetWindow();
     if (window == nil) {
         dmLogError("Videoplayer: No active window found for iOS playback");
         return nil;
@@ -45,9 +86,12 @@
         return;
     }
     if(!m_IsSubLayerActive) {
-        layer.frame = targetView.bounds;
-        layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
-        [targetView.layer addSublayer:layer];
+        if (m_PlayerView == nil || m_PlayerView.layer != layer) {
+            dmLogError("Videoplayer: Player view is missing");
+            return;
+        }
+        m_PlayerView.frame = targetView.bounds;
+        [targetView addSubview:m_PlayerView];
         m_IsSubLayerActive = true;
     } else {
         dmLogError("Videoplayer: Already have active sublayer - remove it first");
@@ -56,7 +100,11 @@
 
 -(void) RemoveSubLayer:(AVPlayerLayer*)layer {
     if(m_IsSubLayerActive) {
-        [layer removeFromSuperlayer];
+        if (m_PlayerView.layer != layer) {
+            dmLogError("Videoplayer: Unexpected player layer");
+            return;
+        }
+        [m_PlayerView removeFromSuperview];
         m_IsSubLayerActive = false;
     } else {
         dmLogError("No sublayer to remove");
@@ -86,20 +134,24 @@
     AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
     player.muted = !playSound;
 
-    AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
-    [self AddSubLayer:playerLayer];   // sized to the target view (overlay above Defold)
+    m_PlayerView = [[DMVideoPlayerOverlayView alloc] initWithFrame:m_TargetView.bounds];
+    m_PlayerView.userInteractionEnabled = NO;
+    m_PlayerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    AVPlayerLayer* playerLayer = (AVPlayerLayer*)m_PlayerView.layer;
+    playerLayer.player = player;
+    [self AddSubLayer:playerLayer];
 
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     dmLogInfo("Videoplayer: screenBounds: (%f x %f)", screenBounds.size.width, screenBounds.size.height);
 
     int video = m_NumVideos;
     SDarwinVideoInfo& info = m_Videos[video];
-    info.m_Asset = asset;
-    info.m_PlayerItem = playerItem;
+    info.m_Asset = [asset retain];
+    info.m_PlayerItem = [playerItem retain];
     info.m_Width = width;
     info.m_Height = height;
-    info.m_Player = player;
-    info.m_PlayerLayer = playerLayer;
+    info.m_Player = [player retain];
+    info.m_PlayerLayer = [playerLayer retain];
     info.m_VideoId = video;
     info.m_Callback = *cb;
 
@@ -130,10 +182,14 @@
 }
 
 -(void) Destroy:(int)video {
-    VideoPlayerDestroy(self, video);   // removes the sublayer and decrements m_NumVideos
+    if (!VideoPlayerDestroy(self, video)) {
+        return;
+    }
     // The video is an overlay, so there is no rootViewController to restore. When the last video
     // is destroyed, drop the borrowed target references (they are owned by the app, not retained).
     if (m_NumVideos == 0) {
+        [m_PlayerView release];
+        m_PlayerView = nil;
         m_TargetView = nil;
         m_TargetWindow = nil;
     }

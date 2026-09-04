@@ -26,6 +26,7 @@ struct SDarwinVideoInfo {
         SDarwinVideoInfo            m_Videos[dmVideoPlayer::MAX_NUM_VIDEOS];
         UIWindow*                   m_TargetWindow;
         UIView*                     m_TargetView;
+        UIView*                     m_PlayerView;
         CMTime                      m_PauseTime;
         bool                        m_IsSubLayerActive;
         bool                        m_ResumeOnForeground;

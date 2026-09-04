@@ -79,6 +79,11 @@ Shows or hides the video player view
 
 ## videoplayer.start(handle) / videoplayer.stop(handle) / videoplayer.pause(handle)
 
+Controls playback without destroying the handle or removing the video view. To skip a video and
+remove its view, call `videoplayer.destroy(handle)`.
+
+On Android and iOS, the video view does not consume touch input. Touches continue to reach Defold,
+so the game can implement tap-to-skip by destroying the active video handle.
 
 # Example
 
